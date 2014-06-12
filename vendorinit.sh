@@ -8,7 +8,7 @@ LOCAL_MANIFEST_FILE=$LOCAL_MANIFEST_DIR/$VENDOR_MANIFEST_FILE
 
 rm -rfv $LOCAL_MANIFESTS_FILE
 mkdir -pv $LOCAL_MANIFESTS_DIR
-if [ -z $USE_LOCAL_MIRROR ] ; then
+if [ ! -z $USE_LOCAL_MIRROR ] ; then
   repo init -u /src/androidarmv6/android.git -b cm-11.0
 else
   repo init -u git://github.com/androidarmv6/android.git -b cm-11.0
