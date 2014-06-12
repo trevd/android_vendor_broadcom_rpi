@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+
+	<!-- Replace Build System with a Pi Specific Version 	-->
+	<remove-project name="androidarmv6/android_build" />
+	<project path="build" name="trevd/android_build" revision="cm-11.0-rpi" groups="pdk,rpi">
+		<copyfile src="core/root.mk" dest="Makefile" />
+	</project>
+	
+	<!-- Replace Busybox with a version which add virtual terminal applets 	-->
+	<remove-project name="CyanogenMod/android_external_busybox" />
+	<project path="external/busybox" name="trevd/android_external_busybox" groups="pdk,rpi" revision="cm-11.0-rpi" />
+	
+	<!-- Vendor Repository mainly used for initialization  -->
+	<project path="vendor/broadcom/rpi" name="trevd/android_vendor_broadcom_rpi" groups="pdk,rpi" />
+	<!-- Kitkat friendly Device Configuration -->
+	<project path="device/broadcom/rpi" name="trevd/android_device_broadcom_rpi" groups="pdk,rpi" />
+	<!-- Raspberry Kernel - Forked from from github.com/raspberrypi/linux -->
+	<project path="kernel/broadcom/rpi" name="trevd/android_kernel_broadcom_rpi" groups="pdk,rpi" />
+	<!-- raspberry pi specific modules. This contains the hwcomposer , gralloc and the libEGL.
+		 LibEGL implements the EGL, GLES and GLESv2  in a single module -->
+	<project path="hardware/broadcom/bcm2708" name="trevd/android_hardware_broadcom_bcm2708" groups="pdk,rpi" />
+	
+
+</manifest>

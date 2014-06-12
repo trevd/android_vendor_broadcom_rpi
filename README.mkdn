@@ -1,0 +1,55 @@
+Android for ARMv6 [ RaspberryPi Edition ] - CyanogenMod 11.0
+===========
+
+
+Getting Started
+---------------
+
+To get started with Android for ARMv6/CyanogenMod, you'll need to get
+familiar with [Git and Repo](http://source.android.com/source/developing.html).
+
+
+To initialize your local repository for creating Cyanogenmod 11.0 for the RaspberryPi
+You need to download and run the vendor initialize script.
+
+    curl -L http://goo.gl/HjZqON > vendorinit.sh
+    sudo chmod 755 vendorinit.sh
+    source vendorinit.sh
+    [See Notes for more info]
+
+
+2. Downloads the RaspberryPi specific local manifest.
+  
+
+Then to sync up:
+
+    repo sync
+
+Build your device:
+
+    source build/envsetup.sh
+    lunch rpi-eng
+    make -j4 
+
+
+Notes
+-----
+The vendorinit.sh Script carries out 2 tasks
+1. runs the standard repo init to get the cm-11.0 androidarmv6 manifest 
+
+repo init -u git://github.com/androidarmv6/android.git -b cm-11.0
+
+
+Disclaimer
+--------
+
+It's a tough world out there and basically you're on your own.
+"So, don't get nervous and start asking for help, That's exactly 
+what they want you to do Make it on your own,"
+
+https://www.youtube.com/watch?v=tPhddAEgkPY
+ 
+
+Credits
+-------
+razdroid, androidarmv6, and CyanogenMod and many many more.
