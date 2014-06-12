@@ -1,13 +1,13 @@
 #!/bin/sh
 
-LOCAL_MANIFESTS_DIR=.repo/local_manifests
+LOCAL_MANIFEST_DIR=.repo/local_manifests
 
 VENDOR_MANIFEST_FILE=broadcom-rpi-vendor.xml
 LOCAL_MANIFEST_FILE=$LOCAL_MANIFEST_DIR/$VENDOR_MANIFEST_FILE
 
 
-rm -rfv $LOCAL_MANIFESTS_FILE
-mkdir -pv $LOCAL_MANIFESTS_DIR
+rm -rfv $LOCAL_MANIFEST_FILE
+mkdir -pv $LOCAL_MANIFEST_DIR
 if [ ! -z $USE_LOCAL_MIRROR ] ; then
   echo "Going Loco in Acapulco"
   repo init -u /src/androidarmv6/android.git -b cm-11.0
