@@ -17,4 +17,4 @@ else
 fi
 
 
-curl https://raw.github.com/trevd/android_vendor_broadcom_rpi/cm-11.0/manifests/$VENDOR_MANIFEST_FILE > $LOCAL_MANIFEST_FILE
+curl https://raw.githubusercontent.com/trevd/android_vendor_broadcom_rpi/cm-11.0/manifests/broadcom-rpi-vendor.xml > $LOCAL_MANIFEST_FILE
