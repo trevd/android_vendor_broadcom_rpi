@@ -1,0 +1,81 @@
+diff build/core/binary.mk build/core/binary.mk
+--- build/core/binary.mk
++++ build/core/binary.mk
+@@ -221,6 +221,12 @@ endif
+ ###########################################################
+ LOCAL_ARM_MODE := $(strip $(LOCAL_ARM_MODE))
+ ifeq ($(TARGET_ARCH),arm)
++# We currently only support thumb-2
++# build in arm mode if thumb-1 is set
++ifeq ($(strip $(TARGET_ARCH_THUMB_VERSION)),1)
++LOCAL_ARM_MODE := arm
++endif
++
+ arm_objects_mode := $(if $(LOCAL_ARM_MODE),$(LOCAL_ARM_MODE),arm)
+ normal_objects_mode := $(if $(LOCAL_ARM_MODE),$(LOCAL_ARM_MODE),thumb)
+ 
+diff --git build/core/combo/TARGET_linux-arm.mk build/core/combo/TARGET_linux-arm.mk
+index 3497662..8c36c84 100644
+--- build/core/combo/TARGET_linux-arm.mk
++++ build/core/combo/TARGET_linux-arm.mk
+@@ -70,14 +70,19 @@ TARGET_NO_UNDEFINED_LDFLAGS := -Wl,--no-undefined
+ 
+ TARGET_arm_CFLAGS :=    -O2 \
+                         -fomit-frame-pointer \
+-                        -fstrict-aliasing    \
++                        -fno-strict-aliasing    \
+                         -funswitch-loops
+ 
+ # Modules can choose to compile some source as thumb.
++ifeq ($(ARCH_ARM_HAVE_THUMB_SUPPORT),true)
+ TARGET_thumb_CFLAGS :=  -mthumb \
+                         -Os \
+                         -fomit-frame-pointer \
+                         -fno-strict-aliasing
++else
++TARGET_thumb_CFLAGS := $(TARGET_arm_CFLAGS)
++endif
++
+ 
+ # Set FORCE_ARM_DEBUGGING to "true" in your buildspec.mk
+ # or in your environment to force a full arm build, even for
+diff --git build/core/combo/arch/arm/armv6-vfp.mk build/core/combo/arch/arm/armv6-vfp.mk
+index 74ce197..b8ce0bb 100644
+--- build/core/combo/arch/arm/armv6-vfp.mk
++++ build/core/combo/arch/arm/armv6-vfp.mk
+@@ -15,19 +15,30 @@ endif
+ ifeq ($(strip $(TARGET_ARCH_VARIANT_FPU)),)
+ TARGET_ARCH_VARIANT_FPU         := vfp
+ endif
++
+ ifeq ($(strip $(TARGET_ARCH_VARIANT_CPU)),)
+-TARGET_ARCH_VARIANT_CPU         := arm1136jf-s
++	TARGET_ARCH_VARIANT_CPU         := arm1136jf-s
+ endif
+ 
+-# Note: Hard coding the 'tune' value here is probably not ideal,
+-# and a better solution should be found in the future.
+-#
+ arch_variant_cflags := \
+-    -mcpu=$(TARGET_ARCH_VARIANT_CPU) \
+     -mfloat-abi=softfp \
++    -mcpu=$(TARGET_ARCH_VARIANT_CPU) \
+     -mfpu=$(TARGET_ARCH_VARIANT_FPU) \
+     -D__ARM_ARCH_5__ \
+     -D__ARM_ARCH_5T__ \
+     -D__ARM_ARCH_5E__ \
+     -D__ARM_ARCH_5TE__
+ 
++ifeq ($(strip $(TARGET_ARCH_VARIANT_CPU)),arm1176jzf-s)
++	
++	ARCH_ARM_HAVE_THUMB_SUPPORT     := false
++	ARCH_ARM_HAVE_FAST_INTERWORKING := false
++	
++	arch_variant_cflags += \
++		-mtune=$(TARGET_ARCH_VARIANT_CPU) \
++		-msoft-float \
++		-D__ARM_ARCH_6__ \
++		-D__ARM_ARCH_6J__ \
++
++
++endif
