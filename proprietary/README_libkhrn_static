@@ -1,0 +1,24 @@
+The libkhrn_static.a library found in this directory is a modified version
+of the original RaspberryPI version.
+
+Original File
+https://github.com/raspberrypi/firmware/blob/master/opt/vc/lib/libkhrn_static.a
+
+Modifications 
+
+Removed orignal khrn_options.c.o :
+Could not resolve stderr symbol ( don't know why? ). Replaced with source code
+version
+
+Removed khrn_client_platform_openwfc.c.o :
+Not in use and contains duplicates symbols for platform_get_handle and 
+platform_get_dimensions
+
+Replaced egl_client_config.c.o with egl_client_config_modified.c.o 
+renamed symbol egl_config_get_attrib -> _gl_config_get_attrib
+renamed symbol egl_config_check_attribs -> _gl_config_check_attribs
+renamed symbol egl_config_filter -> _gl_config_filter
+
+dummy.c contains the implementation of the renamed symbols and adds
+support for EGL_FRAMEBUFFER_TARGET_ANDROID attribute which is required
+by Kitkats surfaceflinger						
