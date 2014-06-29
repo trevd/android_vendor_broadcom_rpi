@@ -27,6 +27,7 @@ LOCAL_MODULE_PATH := $(TARGET_OUT_VENDOR_SHARED_LIBRARIES)/egl
 LOCAL_MODULE := libEGL_bcm2708
 
 LOCAL_SRC_FILES:= dummy.c \
+					brcm_egl.c \
 					../../../../hardware/broadcom/$(TARGET_BOARD_PLATFORM)/libEGL/common/khrn_options.c
 
 LOCAL_SHARED_LIBRARIES:=libvcos libvchiq_arm  libvchostif liblog
