@@ -248,7 +248,7 @@ EGLAPI EGLBoolean EGLAPIENTRY eglInitialize(EGLDisplay dpy, EGLint *major, EGLin
 
    CLIENT_UNLOCK();
 
-   vcos_log_set_level(&egl_client_log_cat, VCOS_LOG_TRACE);
+   vcos_log_set_level(&egl_client_log_cat, VCOS_LOG_WARN);
    vcos_log_register("egl_client", &egl_client_log_cat);
    vcos_log_info("eglInitialize end. dpy=%d.", (int)dpy);
 
@@ -1550,7 +1550,7 @@ EGLAPI EGLContext EGLAPIENTRY eglCreateContext(EGLDisplay dpy, EGLConfig config,
    CLIENT_PROCESS_STATE_T *process;
    EGLContext result;
 
-    vcos_log_trace("%s:%d",__FUNCTION__,__LINE__);
+    //vcos_log_trace("%s:%d",__FUNCTION__,__LINE__);
 
    if (CLIENT_LOCK_AND_GET_STATES(dpy, &thread, &process))
    {

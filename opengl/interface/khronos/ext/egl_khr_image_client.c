@@ -28,6 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define EGL_EGLEXT_PROTOTYPES /* we want the prototypes so the compiler will check that the signatures match */
 
 #define VCOS_LOG_CATEGORY (&egl_khr_image_client_log)
+
 #include "interface/khronos/common/khrn_client_mangle.h"
 
 #include "interface/khronos/common/khrn_int_common.h"
@@ -47,12 +48,42 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 #if defined(ANDROID) && defined(KHRN_BCG_ANDROID)
-#include "gralloc_priv.h"
+#include <gralloc_priv.h>
+#include <hardware/hardware.h>
+#include <hardware/gralloc.h>
 #include "middleware/khronos/common/2708/khrn_prod_4.h"
 #endif
 
-static VCOS_LOG_CAT_T egl_khr_image_client_log = VCOS_LOG_INIT("egl_khr_image_client", VCOS_LOG_TRACE);
+#ifdef ANDROID
+#include <hardware/gralloc.h>
+#include <hardware/fb.h>
+#include <hardware/hardware.h>
+#include <system/graphics.h>
+#include <gralloc_priv.h>
 
+#endif
+static VCOS_LOG_CAT_T egl_khr_image_client_log = VCOS_LOG_INIT("egl_khr_image_client", VCOS_LOG_TRACE);
+uint32_t private_get_gralloc_dispman_resource(){
+
+    
+        vcos_log_trace("%s", __FUNCTION__);
+    hw_module_t *mod;
+    int fd = -1, err;
+    err = hw_get_module(GRALLOC_HARDWARE_MODULE_ID, &mod);
+    
+    struct private_module_t* pmod =  (struct private_module_t*) mod;
+    vcos_log_trace("%s mod=%p mod->window=%p", __FUNCTION__,pmod, pmod->window);
+    if(pmod->window == NULL ){
+	    alloc_device_t *gr;
+	    int err = gralloc_open(mod, &gr);
+	    if (err) {
+		vcos_log_trace("couldn't open gralloc HAL (%s)", strerror(-err));
+		return -ENODEV;
+	    }
+    }
+    return pmod->dispman_resource;
+    
+}
 EGLAPI EGLImageKHR EGLAPIENTRY eglCreateImageKHR (EGLDisplay dpy, EGLContext ctx, EGLenum target, EGLClientBuffer buffer, const EGLint *attr_list)
 {
    CLIENT_THREAD_STATE_T *thread = CLIENT_GET_THREAD_STATE();
@@ -175,27 +206,45 @@ EGLAPI EGLImageKHR EGLAPIENTRY eglCreateImageKHR (EGLDisplay dpy, EGLContext ctx
                }
 #endif
 
-            } else if (target == EGL_IMAGE_BRCM_MULTIMEDIA) {
-                  buf[0] = (uint32_t)buffer;
-                  vcos_log_trace("%s: converting buffer handle %u to EGL_IMAGE_BRCM_MULTIMEDIA",
-                        __FUNCTION__, buf[0]);
-            } else if (target == EGL_IMAGE_BRCM_MULTIMEDIA_Y) {
-                  buf[0] = (uint32_t)buffer;
-                  vcos_log_trace("%s: converting buffer handle %u to EGL_IMAGE_BRCM_MULTIMEDIA_Y",
-                        __FUNCTION__, buf[0]);
-            } else if (target == EGL_IMAGE_BRCM_MULTIMEDIA_U) {
-                  buf[0] = (uint32_t)buffer;
-                  vcos_log_trace("%s: converting buffer handle %u to EGL_IMAGE_BRCM_MULTIMEDIA_U",
-                        __FUNCTION__, buf[0]);
-            } else if (target == EGL_IMAGE_BRCM_MULTIMEDIA_V) {
-                  buf[0] = (uint32_t)buffer;
-                  vcos_log_trace("%s: converting buffer handle %u to EGL_IMAGE_BRCM_MULTIMEDIA_V",
-                        __FUNCTION__, buf[0]);
 
+            } else if (target == EGL_NATIVE_BUFFER_ANDROID) {
+               //gralloc_private_handle_t *gpriv = gralloc_private_handle_from_client_buffer(buffer);
+               int res_type =  GRALLOC_PRIV_TYPE_MM_RESOURCE ; //gralloc_private_handle_get_res_type(gpriv);
+
+               if (res_type == GRALLOC_PRIV_TYPE_GL_RESOURCE) {
+                  /* just return the a copy of the EGLImageKHR gralloc created earlier
+                     see hardware/broadcom/videocore/components/graphics/gralloc/ */
+                  target = EGL_IMAGE_BRCM_DUPLICATE;
+                  buf[0] = NULL ; //(uint32_t)private_handle_get_egl_image(gpriv);
+                  vcos_log_trace("%s: converting buffer %p egl_image %d to EGL_IMAGE_BRCM_DUPLICATE",
+                        __FUNCTION__, buffer, buf[0]);
+               }
+               else if (res_type == GRALLOC_PRIV_TYPE_MM_RESOURCE) {
+                  /* MM image is potentially going to be used as a texture so
+                   * VC EGL needs to acquire a reference to the underlying vc_image.
+                   * So, we create the image in the normal way.
+                   * EGL_NATIVE_BUFFER_ANDROID is passed as the target.
+                   */
+                  //if (gpriv->gl_format == GRALLOC_MAGICS_HAL_PIXEL_FORMAT_OPAQUE)
+                     target = EGL_IMAGE_BRCM_MULTIMEDIA;
+                  //else
+		//target = EGL_IMAGE_BRCM_RAW_PIXELS;
+                  buffer_width = 1920;
+                  buffer_height = 1080;
+                  buffer_stride =7680;
+
+                  buf[0] = private_get_gralloc_dispman_resource(); //gralloc_private_handle_get_vc_handle(gpriv);
+                  vcos_log_trace("%s: converting buffer %p handle %u to EGL_IMAGE_BRCM_MULTIMEDIA",
+                        __FUNCTION__, buffer, buf[0]);
+               }
+               else {
+                  vcos_log_error("%s: unknown gralloc resource type %x", __FUNCTION__, res_type);
+               }
             } else {
                vcos_log_trace("%s:target type %x buffer %p handled on server", __FUNCTION__, target, buffer);
                buf[0] = (uint32_t)buffer;
             }
+	    buf_error =false;
             if (buf_error) {
                thread->error = EGL_BAD_PARAMETER;
             }

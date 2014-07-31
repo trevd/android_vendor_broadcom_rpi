@@ -40,6 +40,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #ifdef ANDROID
 #include <hardware/gralloc.h>
+#include <hardware/fb.h>
 #include <hardware/hardware.h>
 #include <system/graphics.h>
 #include <gralloc_priv.h>
@@ -995,8 +996,16 @@ void platform_get_dimensions(EGLDisplay dpy, EGLNativeWindowType win,
     int fd = -1, err;
     err = hw_get_module(GRALLOC_HARDWARE_MODULE_ID, &mod);
     
-    struct private_module_t* pmod =  (struct private_module_t*) mod;
+        struct private_module_t* pmod =  (struct private_module_t*) mod;
     vcos_log_trace("%s mod=%p mod->window=%p", __FUNCTION__,pmod, pmod->window);
+    if(pmod->window == NULL ){
+	    alloc_device_t *gr;
+	    int err = gralloc_open(mod, &gr);
+	    if (err) {
+		vcos_log_trace("couldn't open gralloc HAL (%s)", strerror(-err));
+		return -ENODEV;
+	    }
+    }
     EGL_DISPMANX_WINDOW_T *dwin = pmod->window ;
     //EGL_DISPMANX_WINDOW_T *dwin = platform_get_dispmanx_handle_from_anativewindow(dpy,win);
    vcos_assert(dwin->width < 1<<16); // sanity check
@@ -1015,6 +1024,14 @@ uint32_t platform_get_handle(EGLDisplay dpy, EGLNativeWindowType win)
     
     struct private_module_t* pmod =  (struct private_module_t*) mod;
     vcos_log_trace("%s mod=%p mod->window=%p", __FUNCTION__,pmod, pmod->window);
+    if(pmod->window == NULL ){
+	    alloc_device_t *gr;
+	    int err = gralloc_open(mod, &gr);
+	    if (err) {
+		vcos_log_trace("couldn't open gralloc HAL (%s)", strerror(-err));
+		return -ENODEV;
+	    }
+    }
     EGL_DISPMANX_WINDOW_T *dwin = pmod->window ; //platform_get_dispmanx_handle_from_anativewindow(dpy,win);
      vcos_log_trace("%s win=%p dpy=%p dwin=%p dwin->height=%d,dwin->width=%d", __FUNCTION__,win,dpy,dwin,dwin->height,dwin->width);
     return (uint32_t)dwin->element;
