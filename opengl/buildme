@@ -1,0 +1,28 @@
+#/bin/bash
+
+if [ "armv6l" = `arch` ]; then
+	# Native compile on the Raspberry Pi
+	mkdir -p build/raspberry/release
+	pushd build/raspberry/release
+	cmake -DCMAKE_BUILD_TYPE=Release ../../..
+	make
+	if [ "$1" != "" ]; then
+	 sudo make install DESTDIR=$1
+	else
+	 sudo make install
+	fi
+else
+	# Cross compile on a more capable machine
+	rm -rfv build
+	THIS_DIR=$PWD
+	mkdir -p build/arm-linux/release/
+	pushd build/arm-linux/release/
+	cmake -DCMAKE_TOOLCHAIN_FILE=../../../makefiles/cmake/toolchains/arm-linux-gnueabihf.cmake -DCMAKE_BUILD_TYPE=Debug ../../.. 
+	make -j 6 khrn_static bcm_host_static && xclip-copyfile $THIS_DIR/build/lib/lib*.a 
+
+	#if [ "$1" != "" ]; then
+	# sudo make install DESTDIR=$1
+	#fi
+fi
+popd
+
