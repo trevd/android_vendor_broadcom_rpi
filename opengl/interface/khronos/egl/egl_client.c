@@ -1543,38 +1543,32 @@ EGLAPI EGLBoolean EGLAPIENTRY eglSwapInterval(EGLDisplay dpy, EGLint interval)
 
    return result;
 }
-
 EGLAPI EGLContext EGLAPIENTRY eglCreateContext(EGLDisplay dpy, EGLConfig config, EGLContext share_ctx, const EGLint *attrib_list)
 {
    CLIENT_THREAD_STATE_T *thread;
    CLIENT_PROCESS_STATE_T *process;
    EGLContext result;
 
-    //vcos_log_trace("%s:%d",__FUNCTION__,__LINE__);
+vcos_log_trace("eglCreateContext start");
 
    if (CLIENT_LOCK_AND_GET_STATES(dpy, &thread, &process))
    {
       if ((int)(size_t)config < 1 || (int)(size_t)config > EGL_MAX_CONFIGS) {
-	  vcos_log_error("%s:%d",__FUNCTION__,__LINE__);
          thread->error = EGL_BAD_CONFIG;
          result = EGL_NO_CONTEXT;
       } else {
          EGLint max_version = (EGLint) (thread->bound_api == EGL_OPENGL_ES_API ? 2 : 1);
          EGLint version = 1;
-	vcos_log_trace("%s:%d version=%d max_version=%d",__FUNCTION__,__LINE__,version,max_version);
+
          if (!egl_context_check_attribs(attrib_list, max_version, &version)) {
-	     vcos_log_error("%s:%d",__FUNCTION__,__LINE__);
             thread->error = EGL_BAD_ATTRIBUTE;
             result = EGL_NO_CONTEXT;
          } else if (!(egl_config_get_api_support((int)(intptr_t)config - 1) &
             ((thread->bound_api == EGL_OPENVG_API) ? EGL_OPENVG_BIT :
             ((version == 1) ? EGL_OPENGL_ES_BIT : EGL_OPENGL_ES2_BIT)))) {
-	    vcos_log_error("%s:%d",__FUNCTION__,__LINE__);
             thread->error = EGL_BAD_CONFIG;
             result = EGL_NO_CONTEXT;
          } else {
-	     vcos_log_trace("%s:%d",__FUNCTION__,__LINE__);
-
             EGL_CONTEXT_T *share_context;
 
             if (share_ctx != EGL_NO_CONTEXT) {
@@ -1583,57 +1577,50 @@ EGLAPI EGLContext EGLAPIENTRY eglCreateContext(EGLDisplay dpy, EGLConfig config,
                if (share_context) {
                   if ((share_context->type == OPENVG && thread->bound_api != EGL_OPENVG_API) ||
                      (share_context->type != OPENVG && thread->bound_api == EGL_OPENVG_API)) {
-		    vcos_log_error("%s:%d",__FUNCTION__,__LINE__);
                      thread->error = EGL_BAD_MATCH;
                      share_context = NULL;
                   }
                } else {
-		  vcos_log_error("%s:%d",__FUNCTION__,__LINE__);
                   thread->error = EGL_BAD_CONTEXT;
                }
             } else {
-		vcos_log_trace("%s:%d",__FUNCTION__,__LINE__);
                share_context = NULL;
-            } //  (share_ctx != EGL_NO_CONTEXT)
+            }
 
             if (share_ctx == EGL_NO_CONTEXT || share_context) {
-		vcos_log_trace("%s:%d thread->bound_api=%d",__FUNCTION__,__LINE__,thread->bound_api);
                EGL_CONTEXT_T *context;
                EGL_CONTEXT_TYPE_T type;
 
-               if (thread->bound_api == EGL_OPENVG_API){
+#ifndef NO_OPENVG
+               if (thread->bound_api == EGL_OPENVG_API)
                   type = OPENVG;
-               } else {
-		    if (version == 1){ 
-			type = OPENGL_ES_11;
-			vcos_log_trace("%s:%d Creating OpenGL 1.1 Session",__FUNCTION__,__LINE__);
-		    } else {
-			type = OPENGL_ES_20;
-			vcos_log_trace("%s:%d Creating OpenGL 2.0 Session",__FUNCTION__,__LINE__);
-		    }
-		}
-		vcos_log_trace("%s:%d type=%d",__FUNCTION__,__LINE__,type);
-               context = egl_context_create(share_context,(EGLContext)(size_t)process->next_context, dpy, config, OPENGL_ES_20);
+               else
+#endif
+                  if (version == 1)
+                     type = OPENGL_ES_11;
+                  else
+                     type = OPENGL_ES_20;
+
+               context = egl_context_create(
+                                share_context,
+                                (EGLContext)(size_t)process->next_context,
+                                dpy, config, type);
 
                if (context) {
                   if (khrn_pointer_map_insert(&process->contexts, process->next_context, context)) {
                      thread->error = EGL_SUCCESS;
-		     vcos_log_trace("%s:%d ",__FUNCTION__,__LINE__);
                      result = (EGLContext)(size_t)process->next_context++;
                   } else {
-		       vcos_log_error("%s:%d",__FUNCTION__,__LINE__);
                      thread->error = EGL_BAD_ALLOC;
                      result = EGL_NO_CONTEXT;
                      egl_context_term(context);
                      khrn_platform_free(context);
                   }
                } else {
-		   vcos_log_error("%s:%d",__FUNCTION__,__LINE__);
                   thread->error = EGL_BAD_ALLOC;
                   result = EGL_NO_CONTEXT;
                }
             } else {
-		vcos_log_error("%s:%d",__FUNCTION__,__LINE__);
                /* thread->error set above */
                result = EGL_NO_CONTEXT;
             }
@@ -1641,11 +1628,10 @@ EGLAPI EGLContext EGLAPIENTRY eglCreateContext(EGLDisplay dpy, EGLConfig config,
       }
       CLIENT_UNLOCK();
    }
-   else{
-       vcos_log_error("%s:%d",__FUNCTION__,__LINE__);
+   else
       result = EGL_NO_CONTEXT;
-    }
-   vcos_log_trace("%s:%d result=%p",__FUNCTION__,__LINE__,result);
+
+   vcos_log_trace("eglCreateContext end");
 
    return result;
 }
