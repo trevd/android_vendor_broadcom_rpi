@@ -58,7 +58,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdlib.h>
 #include <math.h>
 
-VCOS_LOG_CAT_T gl_client_log = VCOS_LOG_INIT("gl_client", VCOS_LOG_TRACE);
+VCOS_LOG_CAT_T gl_client_log = VCOS_LOG_INIT("gl_client", VCOS_LOG_WARN);
 
 #ifdef __HIGHC__
 #pragma warning( disable : 4100 4127 4204)             // unreferenced formal parameter, constant conditional expression, non-constant initializer
