@@ -154,6 +154,15 @@ by an attribute value"
 #include <string.h>
 
 
+#ifdef ANDROID
+#include <hardware/gralloc.h>
+#include <hardware/fb.h>
+#include <hardware/hardware.h>
+#include <system/graphics.h>
+#include <gralloc_priv.h>
+#include <utils/Log.h>
+
+#endif
 #include "interface/khronos/egl/egl_client_cr.c"
 
 VCOS_LOG_CAT_T egl_client_log_cat;
@@ -589,8 +598,9 @@ EGLAPI EGLSurface EGLAPIENTRY eglCreateWindowSurface(EGLDisplay dpy, EGLConfig c
    {
       
       //win = platform_get_dispmanx_handle_from_anativewindow(dpy,win);
-      uint32_t handle = platform_get_handle(dpy, win);
-
+       //vcos_log_trace("eglCreateWindowSurface for gralloc %p window=%p element=%p", process->gralloc_module,process->gralloc_module->window,process->gralloc_module->window->element);
+      uint32_t handle = process->gralloc_module->window->element ; //platform_get_handle(dpy, win);
+	//vcos_log_trace("eglCreateWindowSurface for handle=%p", handle);
 
       if ((int)(size_t)config < 1 || (int)(size_t)config > EGL_MAX_CONFIGS) {
          thread->error = EGL_BAD_CONFIG;
@@ -611,13 +621,12 @@ EGLAPI EGLSurface EGLAPIENTRY eglCreateWindowSurface(EGLDisplay dpy, EGLConfig c
          } else {
             EGL_SURFACE_T *surface;
 
-            uint32_t width, height;
+            uint32_t width = process->gralloc_module->window->width;
+	    uint32_t height= process->gralloc_module->window->height;
             uint32_t num_buffers = 3;
-            uint32_t swapchain_count;
+            uint32_t swapchain_count = 0 ;
 	    
-            platform_get_dimensions(dpy,
-                 win, &width, &height, &swapchain_count);
-	    
+            
             if (swapchain_count > 0)
                num_buffers = swapchain_count;
             else
@@ -2281,13 +2290,14 @@ EGLAPI EGLBoolean EGLAPIENTRY eglSwapBuffers(EGLDisplay dpy, EGLSurface surf)
                // We need to check at this point if the surface has resized, and pass
                // size data down to the server.
 
-               width = surface->width;
-               height = surface->height;
+               width = process->gralloc_module->window->width;
+               height = process->gralloc_module->window->height;
 	       EGLNativeWindowType _awin = surface->win ; 
 	       
-	       surface->win = platform_get_dispmanx_handle_from_anativewindow(dpy,surface->win);
-               platform_get_dimensions(dpy, surface->win,
-                     &width, &height, &swapchain_count);
+	       surface->win = process->gralloc_module->window; //platform_get_dispmanx_handle_from_anativewindow(dpy,surface->win);
+	       vcos_log_trace("eglSwapBuffers surface->win=%p gralloc->window=%p",surface->win,process->gralloc_module->window);
+               //platform_get_dimensions(dpy, surface->win,
+               //      &width, &height, &swapchain_count);
 
                if((width!=surface->width)||(height!=surface->height)) {
                   uint32_t handle = platform_get_handle(dpy, surface->win);

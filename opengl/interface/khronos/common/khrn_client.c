@@ -53,7 +53,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "middleware/dlloader/dlfcn.h"
 #include "applications/vmcs/khronos/khronos_server.h"
 #endif
-
+#include <hardware/gralloc.h>
+#include <hardware/hardware.h>
+#include <gralloc_priv.h>
 VCOS_LOG_CAT_T khrn_client_log = VCOS_LOG_INIT("khrn_client", VCOS_LOG_WARN);
 
 /*
@@ -139,6 +141,29 @@ void client_try_unload_server(CLIENT_PROCESS_STATE_T *process)
    -
 */
 
+
+struct private_module_t* get_gralloc_module(){
+
+    
+    
+    vcos_log_trace("%s", __FUNCTION__);
+    hw_module_t *mod;
+    int fd = -1, err;
+    err = hw_get_module(GRALLOC_HARDWARE_MODULE_ID, &mod);
+    
+    struct private_module_t* pmod =  (struct private_module_t*) mod;
+    vcos_log_trace("%s mod=%p mod->window=%p", __FUNCTION__,pmod, pmod->window);
+    if(pmod->window == NULL ){
+	    alloc_device_t *gr;
+	    int err = gralloc_open(mod, &gr);
+	    if (err) {
+		vcos_log_trace("couldn't open gralloc HAL (%s)", strerror(-err));
+		return -ENODEV;
+	    }
+    }
+    return pmod;
+    
+}
 bool client_process_state_init(CLIENT_PROCESS_STATE_T *process)
 {
    if (!process->inited) {
@@ -177,7 +202,7 @@ bool client_process_state_init(CLIENT_PROCESS_STATE_T *process)
 #if EGL_BRCM_global_image && EGL_KHR_image
       process->next_global_image_egl_image = 1 << 31;
 #endif
-
+    process->gralloc_module = get_gralloc_module();
 #if EGL_BRCM_perf_monitor
       process->perf_monitor_inited = false;
 #endif

@@ -18,7 +18,8 @@ opengl_c_includes := \
 		$(LOCAL_PATH)/interface/khronos/include \
 		$(LOCAL_PATH)/interface/vchiq_arm \
 		$(LOCAL_PATH)/host_support/include \
-		hardware/broadcom/bcm2708/gralloc
+		hardware/broadcom/bcm2708/gralloc \
+		system/core/include \
 
 egl_src_files := \
 		interface/khronos/egl/egl_client_config.c \

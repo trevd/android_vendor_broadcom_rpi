@@ -60,30 +60,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <hardware/hardware.h>
 #include <system/graphics.h>
 #include <gralloc_priv.h>
+#include <utils/Log.h>
 
 #endif
 static VCOS_LOG_CAT_T egl_khr_image_client_log = VCOS_LOG_INIT("egl_khr_image_client", VCOS_LOG_TRACE);
-uint32_t private_get_gralloc_dispman_resource(){
 
-    
-        vcos_log_trace("%s", __FUNCTION__);
-    hw_module_t *mod;
-    int fd = -1, err;
-    err = hw_get_module(GRALLOC_HARDWARE_MODULE_ID, &mod);
-    
-    struct private_module_t* pmod =  (struct private_module_t*) mod;
-    vcos_log_trace("%s mod=%p mod->window=%p", __FUNCTION__,pmod, pmod->window);
-    if(pmod->window == NULL ){
-	    alloc_device_t *gr;
-	    int err = gralloc_open(mod, &gr);
-	    if (err) {
-		vcos_log_trace("couldn't open gralloc HAL (%s)", strerror(-err));
-		return -ENODEV;
-	    }
-    }
-    return pmod->dispman_resource;
-    
-}
 EGLAPI EGLImageKHR EGLAPIENTRY eglCreateImageKHR (EGLDisplay dpy, EGLContext ctx, EGLenum target, EGLClientBuffer buffer, const EGLint *attr_list)
 {
    CLIENT_THREAD_STATE_T *thread = CLIENT_GET_THREAD_STATE();
@@ -91,7 +72,7 @@ EGLAPI EGLImageKHR EGLAPIENTRY eglCreateImageKHR (EGLDisplay dpy, EGLContext ctx
 
    CLIENT_LOCK();
 
-   vcos_log_info("eglCreateImageKHR: dpy %p ctx %p target %x buf %p\n",
+   ALOGD("eglCreateImageKHR: dpy %p ctx %p target %x buf %p\n",
                                       dpy, ctx, target, buffer);
 
    {
@@ -137,6 +118,7 @@ EGLAPI EGLImageKHR EGLAPIENTRY eglCreateImageKHR (EGLDisplay dpy, EGLContext ctx
                buf[0] = 0; buf[1] = (uint32_t)(-1);
                platform_get_pixmap_server_handle((EGLNativePixmapType)buffer, buf);
 #if EGL_BRCM_global_image
+	    ALOGD("%s:%d", __FUNCTION__,__LINE__);  
                if ((buf[0] == 0) && (buf[1] == (uint32_t)(-1))) { /* allow either regular or global image server-side pixmaps */
 #else
                if ((buf[0] == 0) || (buf[1] != (uint32_t)(-1))) { /* only allow regular server-side pixmaps */
@@ -170,6 +152,7 @@ EGLAPI EGLImageKHR EGLAPIENTRY eglCreateImageKHR (EGLDisplay dpy, EGLContext ctx
                }
 #if EGL_BRCM_image_wrap
             } else if (target == EGL_IMAGE_WRAP_BRCM) {
+		ALOGD("%s:%d", __FUNCTION__,__LINE__);  
                KHRN_IMAGE_WRAP_T *wrap_buffer = (KHRN_IMAGE_WRAP_T *)buffer;
 
                buf[0] = (uint32_t)wrap_buffer->storage;
@@ -209,13 +192,15 @@ EGLAPI EGLImageKHR EGLAPIENTRY eglCreateImageKHR (EGLDisplay dpy, EGLContext ctx
 
             } else if (target == EGL_NATIVE_BUFFER_ANDROID) {
                //gralloc_private_handle_t *gpriv = gralloc_private_handle_from_client_buffer(buffer);
-               int res_type =  GRALLOC_PRIV_TYPE_MM_RESOURCE ; //gralloc_private_handle_get_res_type(gpriv);
+               int res_type =  GRALLOC_PRIV_TYPE_GL_RESOURCE ; //gralloc_private_handle_get_res_type(gpriv);
 
                if (res_type == GRALLOC_PRIV_TYPE_GL_RESOURCE) {
                   /* just return the a copy of the EGLImageKHR gralloc created earlier
                      see hardware/broadcom/videocore/components/graphics/gralloc/ */
-                  target = EGL_IMAGE_BRCM_DUPLICATE;
-                  buf[0] = NULL ; //(uint32_t)private_handle_get_egl_image(gpriv);
+                  buffer_width = process->gralloc_module->info.width;
+                  buffer_height = process->gralloc_module->info.height;
+		  target = EGL_IMAGE_BRCM_DUPLICATE;
+                  buf[0] = process->gralloc_module->dispman_resource; ; //(uint32_t)private_handle_get_egl_image(gpriv);
                   vcos_log_trace("%s: converting buffer %p egl_image %d to EGL_IMAGE_BRCM_DUPLICATE",
                         __FUNCTION__, buffer, buf[0]);
                }
@@ -229,11 +214,11 @@ EGLAPI EGLImageKHR EGLAPIENTRY eglCreateImageKHR (EGLDisplay dpy, EGLContext ctx
                      target = EGL_IMAGE_BRCM_MULTIMEDIA;
                   //else
 		//target = EGL_IMAGE_BRCM_RAW_PIXELS;
-                  buffer_width = 1920;
-                  buffer_height = 1080;
-                  buffer_stride =7680;
+                  buffer_width = process->gralloc_module->info.width;
+                  buffer_height = process->gralloc_module->info.height;
+                  buffer_stride =process->gralloc_module->stride;
 
-                  buf[0] = private_get_gralloc_dispman_resource(); //gralloc_private_handle_get_vc_handle(gpriv);
+                  buf[0] = process->gralloc_module->dispman_resource; //gralloc_private_handle_get_vc_handle(gpriv);
                   vcos_log_trace("%s: converting buffer %p handle %u to EGL_IMAGE_BRCM_MULTIMEDIA",
                         __FUNCTION__, buffer, buf[0]);
                }
@@ -275,6 +260,7 @@ EGLAPI EGLImageKHR EGLAPIENTRY eglCreateImageKHR (EGLDisplay dpy, EGLContext ctx
                }
                else {
 #if EGL_BRCM_global_image
+		ALOGD("%s:%d", __FUNCTION__,__LINE__);  
                   if ((target == EGL_NATIVE_PIXMAP_KHR) && (buf[1] != (uint32_t)-1)) {
                      if (platform_use_global_image_as_egl_image(buf[0], buf[1], (EGLNativePixmapType)buffer, &thread->error)) {
                         if (!khrn_global_image_map_insert(&process->global_image_egl_images,

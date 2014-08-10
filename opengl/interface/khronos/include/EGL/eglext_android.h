@@ -32,6 +32,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifdef __cplusplus
 extern "C" {
 #endif
+#include <hardware/hardware.h> 
+
+
 
 #ifndef EGL_ANDROID_image_native_buffer
    #define EGL_ANDROID_image_native_buffer 1

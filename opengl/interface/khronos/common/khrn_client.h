@@ -51,7 +51,8 @@ typedef struct CLIENT_THREAD_STATE CLIENT_THREAD_STATE_T;
 #if EGL_BRCM_global_image && EGL_KHR_image
    #include "interface/khronos/common/khrn_client_global_image_map.h"
 #endif
-
+#include <hardware/gralloc.h>
+#include <hardware/hardware.h>
 extern void client_try_unload_server(CLIENT_PROCESS_STATE_T *process);
 
 /*
@@ -310,6 +311,9 @@ struct CLIENT_PROCESS_STATE {
 #ifdef RPC_LIBRARY
    KHRONOS_SERVER_CONNECTION_T khrn_connection;
 #endif
+
+   struct private_module_t* gralloc_module; 
+    
 };
 
 extern bool client_process_state_init(CLIENT_PROCESS_STATE_T *process);
@@ -478,8 +482,13 @@ extern void client_library_send_make_current(const KHRONOS_FUNC_TABLE_T *func_ta
 extern void client_library_send_make_current(const KHRONOS_FUNC_TABLE_T *func_table);
 #endif
 
+
+
 #ifdef __cplusplus
 }
 #endif
 
 #endif
+
+
+
