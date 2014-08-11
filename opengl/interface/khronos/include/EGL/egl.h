@@ -241,7 +241,13 @@ typedef void *EGLClientBuffer;
  * API Registrar, who maintains the enumerant registry. Submit
  * a bug in Khronos Bugzilla against task "Registry".
  */
-
+#ifndef EGL_IMG_context_priority
+#define EGL_IMG_context_priority 1
+#define EGL_CONTEXT_PRIORITY_LEVEL_IMG		0x3100
+#define EGL_CONTEXT_PRIORITY_HIGH_IMG		0x3101
+#define EGL_CONTEXT_PRIORITY_MEDIUM_IMG		0x3102
+#define EGL_CONTEXT_PRIORITY_LOW_IMG		0x3103
+#endif
 
 
 /* EGL Functions */

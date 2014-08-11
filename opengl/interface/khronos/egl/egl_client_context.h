@@ -64,7 +64,7 @@ typedef struct {
    bool is_destroyed;
 } EGL_CONTEXT_T;
 
-extern EGLBoolean egl_context_check_attribs(const EGLint *attrib_list, EGLint max_version, EGLint *version);
+extern EGLBoolean egl_context_check_attribs(const EGLint *attrib_list, EGLint max_version, EGLint *version, EGLint *priority);
 
 extern EGL_CONTEXT_T *egl_context_create(EGL_CONTEXT_T *share_context, EGLContext name, EGLDisplay display, EGLConfig configname, EGL_CONTEXT_TYPE_T type);
 extern void egl_context_term(EGL_CONTEXT_T *context);

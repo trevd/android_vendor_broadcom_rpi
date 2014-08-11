@@ -24,6 +24,8 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
+#define VCOS_LOG_CATEGORY (&egl_client_log_cat);
+
 
 #include "interface/khronos/common/khrn_int_common.h"
 
@@ -37,34 +39,51 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifdef RPC_DIRECT
 #include "interface/khronos/egl/egl_int_impl.h"
 #endif
-
+#include <utils/Log.h>
 #include <string.h>
 #include <stdlib.h>
+extern VCOS_LOG_CAT_T egl_client_log_cat;
 
-EGLBoolean egl_context_check_attribs(const EGLint *attrib_list, EGLint max_version, EGLint *version)
+
+EGLBoolean egl_context_check_attribs(const EGLint *attrib_list, EGLint max_version, EGLint *version,EGLint *priority)
 {
+    ALOGD("%s:%d *attrib_list=%p max_version=%d *version=%p",__FUNCTION__,__LINE__,attrib_list,max_version,version);
    if (!attrib_list)
       return EGL_TRUE;
-
+   
    while (1) {
+       ALOGD("%s:%d *attrib_list=0x%x",__FUNCTION__,__LINE__,*attrib_list);
       switch (*attrib_list++) {
+	
+      case EGL_CONTEXT_PRIORITY_LEVEL_IMG:{
+	  EGLint value = *attrib_list++;
+	  *priority = value;
+	  break;
+      }
       case EGL_CONTEXT_CLIENT_VERSION:
       {
          EGLint value = *attrib_list++;
-
-         if (value < 1 || value > max_version)
+	ALOGD("%s:%d value=%d",__FUNCTION__,__LINE__,value);
+         if (value < 1 || value > max_version){
+		 ALOGD("%s:%d",__FUNCTION__,__LINE__);
             return EGL_FALSE;
+	}
          else
             *version = value;
 
          break;
       }
-      case EGL_NONE:
+      case EGL_NONE:{
+	  ALOGD("%s:%d",__FUNCTION__,__LINE__);
          return EGL_TRUE;
-      default:
+	}
+      default:{
+	   ALOGD("%s:%d *attrib_list=0x%x",__FUNCTION__,__LINE__,*attrib_list);
          return EGL_FALSE;
+	}
       }
-   }
+    }
+   
 }
 
 EGL_CONTEXT_T *egl_context_create(EGL_CONTEXT_T *share_context, EGLContext name, EGLDisplay display, EGLConfig configname, EGL_CONTEXT_TYPE_T type)
