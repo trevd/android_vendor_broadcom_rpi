@@ -1663,6 +1663,7 @@ typedef struct OMX_CONFIG_U8TYPE {
 typedef struct OMX_CONFIG_CAMERASETTINGSTYPE {
     OMX_U32 nSize;
     OMX_VERSIONTYPE nVersion;
+    OMX_U32 nPortIndex;               /**< port that this structure applies to */
     OMX_U32 nExposure;
     OMX_U32 nAnalogGain;
     OMX_U32 nDigitalGain;
@@ -2356,6 +2357,19 @@ typedef struct OMX_CONFIG_BRCMRENDERSTATSTYPE {
    OMX_U32 nHvsStatus;
    OMX_U32 dummy0[2];
 } OMX_CONFIG_BRCMRENDERSTATSTYPE;
+
+#define OMX_BRCM_MAXANNOTATETEXTLEN 32
+typedef struct OMX_CONFIG_BRCMANNOTATETYPE {
+   OMX_U32 nSize;
+   OMX_VERSIONTYPE nVersion;
+   OMX_BOOL bEnable;
+   OMX_U8 sText[OMX_BRCM_MAXANNOTATETEXTLEN];
+   OMX_BOOL bShowShutter;
+   OMX_BOOL bShowAnalogGain;
+   OMX_BOOL bShowLens;
+   OMX_BOOL bShowCaf;
+   OMX_BOOL bShowMotion;
+} OMX_CONFIG_BRCMANNOTATETYPE;
 
 #endif
 /* File EOF */

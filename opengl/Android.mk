@@ -11,6 +11,7 @@ opengl_cflags := \
 
 opengl_c_includes := \
 		$(LOCAL_PATH)/host_applications/framework \
+		$(LOCAL_PATH)/interface/vcos \
 		$(LOCAL_PATH)/interface/vcos/pthreads \
 		$(LOCAL_PATH)/interface/vmcs_host/linux \
 		$(LOCAL_PATH)/interface/vmcs_host \
