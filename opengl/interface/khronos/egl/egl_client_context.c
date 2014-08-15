@@ -47,12 +47,12 @@ extern VCOS_LOG_CAT_T egl_client_log_cat;
 
 EGLBoolean egl_context_check_attribs(const EGLint *attrib_list, EGLint max_version, EGLint *version,EGLint *priority)
 {
-    ALOGD("%s:%d *attrib_list=%p max_version=%d *version=%p",__FUNCTION__,__LINE__,attrib_list,max_version,version);
+   // ALOGD("%s:%d *attrib_list=%p max_version=%d *version=%p",__FUNCTION__,__LINE__,attrib_list,max_version,version);
    if (!attrib_list)
       return EGL_TRUE;
    
    while (1) {
-       ALOGD("%s:%d *attrib_list=0x%x",__FUNCTION__,__LINE__,*attrib_list);
+     //  ALOGD("%s:%d *attrib_list=0x%x",__FUNCTION__,__LINE__,*attrib_list);
       switch (*attrib_list++) {
 	
       case EGL_CONTEXT_PRIORITY_LEVEL_IMG:{
@@ -63,9 +63,9 @@ EGLBoolean egl_context_check_attribs(const EGLint *attrib_list, EGLint max_versi
       case EGL_CONTEXT_CLIENT_VERSION:
       {
          EGLint value = *attrib_list++;
-	ALOGD("%s:%d value=%d",__FUNCTION__,__LINE__,value);
+	//ALOGD("%s:%d value=%d",__FUNCTION__,__LINE__,value);
          if (value < 1 || value > max_version){
-		 ALOGD("%s:%d",__FUNCTION__,__LINE__);
+	//	 ALOGD("%s:%d",__FUNCTION__,__LINE__);
             return EGL_FALSE;
 	}
          else
@@ -74,11 +74,11 @@ EGLBoolean egl_context_check_attribs(const EGLint *attrib_list, EGLint max_versi
          break;
       }
       case EGL_NONE:{
-	  ALOGD("%s:%d",__FUNCTION__,__LINE__);
+	  //ALOGD("%s:%d",__FUNCTION__,__LINE__);
          return EGL_TRUE;
 	}
       default:{
-	   ALOGD("%s:%d *attrib_list=0x%x",__FUNCTION__,__LINE__,*attrib_list);
+	//   ALOGD("%s:%d *attrib_list=0x%x",__FUNCTION__,__LINE__,*attrib_list);
          return EGL_FALSE;
 	}
       }

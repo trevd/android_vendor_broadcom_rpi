@@ -11,6 +11,7 @@ opengl_cflags := \
 
 opengl_c_includes := \
 		$(LOCAL_PATH)/host_applications/framework \
+		$(LOCAL_PATH)/host_applications/linux/libs/bcm_host/include \
 		$(LOCAL_PATH)/interface/vcos \
 		$(LOCAL_PATH)/interface/vcos/pthreads \
 		$(LOCAL_PATH)/interface/vmcs_host/linux \
@@ -124,6 +125,20 @@ LOCAL_C_INCLUDES := $(opengl_c_includes)
 LOCAL_SHARED_LIBRARIES := liblog libdl libvc4 libhardware
 include $(BUILD_SHARED_LIBRARY)
 
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := vcsm_test
+LOCAL_CFLAGS := $(opengl_cflags)
+LOCAL_MODULE_TAGS:= optional
+LOCAL_MODULE_PATH:= $(TARGET_OUT_VENDOR_EXECUTABLES)
+LOCAL_SRC_FILES := \
+			host_applications/linux/apps/smem/smem.c \
+			host_applications/linux/libs/sm/user-vcsm.c
+LOCAL_C_INCLUDES := $(opengl_c_includes) \
+					$(LOCAL_PATH)/host_applications/linux/libs/sm \
+					$(LOCAL_PATH)/host_applications/linux/kernel_headers/
+LOCAL_SHARED_LIBRARIES := liblog libdl libvc4
+include $(BUILD_EXECUTABLE)
 
 #include $(CLEAR_VARS)
 #LOCAL_LDFLAGS := -Wl,--no-warn-shared-textrel

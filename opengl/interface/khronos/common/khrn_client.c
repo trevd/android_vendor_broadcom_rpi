@@ -40,6 +40,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #if EGL_KHR_sync
 #include "interface/khronos/ext/egl_khr_sync_client.h"
 #endif
+#ifdef ANDROID
+#include <utils/Log.h>
+#include <hardware/gralloc.h>
+#include <hardware/hardware.h>
+#include <gralloc_priv.h>
+#endif
 
 #if EGL_BRCM_perf_monitor
 #include "interface/khronos/ext/egl_brcm_perf_monitor_client.h"
@@ -53,9 +59,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "middleware/dlloader/dlfcn.h"
 #include "applications/vmcs/khronos/khronos_server.h"
 #endif
-#include <hardware/gralloc.h>
-#include <hardware/hardware.h>
-#include <gralloc_priv.h>
+
 VCOS_LOG_CAT_T khrn_client_log = VCOS_LOG_INIT("khrn_client", VCOS_LOG_WARN);
 
 /*
@@ -141,29 +145,30 @@ void client_try_unload_server(CLIENT_PROCESS_STATE_T *process)
    -
 */
 
-
-struct private_module_t* get_gralloc_module(){
-
+#ifdef ANDROID
+struct private_module_t* client_library_get_gralloc_module(){
     
     
-    vcos_log_trace("%s", __FUNCTION__);
-    hw_module_t *mod;
+    /*hw_module_t *mod;
     int fd = -1, err;
     err = hw_get_module(GRALLOC_HARDWARE_MODULE_ID, &mod);
-    
     struct private_module_t* pmod =  (struct private_module_t*) mod;
-    vcos_log_trace("%s mod=%p mod->window=%p", __FUNCTION__,pmod, pmod->window);
-    if(pmod->window == NULL ){
+    /*if(pmod->dispmanx == NULL ){
+	    ALOGD("%s pmod->window == NULL", __FUNCTION__);
 	    alloc_device_t *gr;
 	    int err = gralloc_open(mod, &gr);
+	    gr->perform(
 	    if (err) {
-		vcos_log_trace("couldn't open gralloc HAL (%s)", strerror(-err));
+	//	ALOGE("couldn't open gralloc HAL (%s)", strerror(-err));
 		return -ENODEV;
 	    }
+	    
     }
-    return pmod;
+    //ALOGD("%s mod=%p mod->window=%p", __FUNCTION__,pmod, pmod->window);
+    return pmod;*/
     
 }
+#endif
 bool client_process_state_init(CLIENT_PROCESS_STATE_T *process)
 {
    if (!process->inited) {
@@ -202,7 +207,7 @@ bool client_process_state_init(CLIENT_PROCESS_STATE_T *process)
 #if EGL_BRCM_global_image && EGL_KHR_image
       process->next_global_image_egl_image = 1 << 31;
 #endif
-    process->gralloc_module = get_gralloc_module();
+
 #if EGL_BRCM_perf_monitor
       process->perf_monitor_inited = false;
 #endif
@@ -229,7 +234,9 @@ bool client_process_state_init(CLIENT_PROCESS_STATE_T *process)
    egl_config_install_configs(0); // RSO configs
 #endif
 #endif
-
+#ifdef ANDROID
+    process->gralloc_module = client_library_get_gralloc_module();
+#endif
    return true;
 }
 

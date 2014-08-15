@@ -159,7 +159,6 @@ by an attribute value"
 #include <hardware/fb.h>
 #include <hardware/hardware.h>
 #include <system/graphics.h>
-#include <gralloc_priv.h>
 #include <utils/Log.h>
 
 #endif
@@ -257,7 +256,7 @@ EGLAPI EGLBoolean EGLAPIENTRY eglInitialize(EGLDisplay dpy, EGLint *major, EGLin
 
    CLIENT_UNLOCK();
 
-   vcos_log_set_level(&egl_client_log_cat, VCOS_LOG_TRACE);
+   vcos_log_set_level(&egl_client_log_cat, VCOS_LOG_WARN);
    vcos_log_register("egl_client", &egl_client_log_cat);
    vcos_log_info("eglInitialize end. dpy=%d.", (int)dpy);
 
@@ -528,7 +527,7 @@ EGLAPI const char EGLAPIENTRY * eglQueryString(EGLDisplay dpy, EGLint name)
    of the OpenVG 1.0 specification for more information.
 
    Similarly, the EGL_VG_ALPHA_FORMAT attribute does not necessarily control
-   or affect the window system’s interpretation of alpha values, even when the window
+   or affect the window system's interpretation of alpha values, even when the window
    system makes use of alpha to composite surfaces at display time. The window system's
    use and interpretation of alpha values is outside the scope of EGL. However,
    the preferred behavior is for window systems to ignore the value of EGL_VG_-
@@ -599,7 +598,7 @@ EGLAPI EGLSurface EGLAPIENTRY eglCreateWindowSurface(EGLDisplay dpy, EGLConfig c
       
       //win = platform_get_dispmanx_handle_from_anativewindow(dpy,win);
        //vcos_log_trace("eglCreateWindowSurface for gralloc %p window=%p element=%p", process->gralloc_module,process->gralloc_module->window,process->gralloc_module->window->element);
-      uint32_t handle = process->gralloc_module->window->element ; //platform_get_handle(dpy, win);
+      uint32_t handle = platform_get_handle(dpy, win);
 	//vcos_log_trace("eglCreateWindowSurface for handle=%p", handle);
 
       if ((int)(size_t)config < 1 || (int)(size_t)config > EGL_MAX_CONFIGS) {
@@ -621,11 +620,11 @@ EGLAPI EGLSurface EGLAPIENTRY eglCreateWindowSurface(EGLDisplay dpy, EGLConfig c
          } else {
             EGL_SURFACE_T *surface;
 
-            uint32_t width = process->gralloc_module->window->width;
-	    uint32_t height= process->gralloc_module->window->height;
+            uint32_t width = 0;
+	    uint32_t height= 0;
             uint32_t num_buffers = 3;
             uint32_t swapchain_count = 0 ;
-	    
+	    platform_get_dimensions(dpy,win,&width,&height,&swapchain_count);
             
             if (swapchain_count > 0)
                num_buffers = swapchain_count;
@@ -2297,12 +2296,11 @@ EGLAPI EGLBoolean EGLAPIENTRY eglSwapBuffers(EGLDisplay dpy, EGLSurface surf)
                // We need to check at this point if the surface has resized, and pass
                // size data down to the server.
 
-               width = process->gralloc_module->window->width;
-               height = process->gralloc_module->window->height;
-	       EGLNativeWindowType _awin = surface->win ; 
+	    platform_get_dimensions(dpy,surface->win ,&width,&height,&swapchain_count);
+	       ANativeWindow* _awin = surface->win ; 
 	       
-	       surface->win = process->gralloc_module->window; //platform_get_dispmanx_handle_from_anativewindow(dpy,surface->win);
-	       vcos_log_trace("eglSwapBuffers surface->win=%p gralloc->window=%p",surface->win,process->gralloc_module->window);
+	       surface->win = platform_get_handle(dpy, surface->win); //platform_get_dispmanx_handle_from_anativewindow(dpy,surface->win);
+	       //vcos_log_trace("eglSwapBuffers surface->win=%p gralloc->window=%p",surface->win,process->gralloc_module->dispmanx->window);
                //platform_get_dimensions(dpy, surface->win,
                //      &width, &height, &swapchain_count);
 
@@ -2344,7 +2342,9 @@ EGLAPI EGLBoolean EGLAPIENTRY eglSwapBuffers(EGLDisplay dpy, EGLSurface surf)
 
 #ifdef ANDROID
                CLIENT_UNLOCK();
-               platform_dequeue(dpy, surface->win);
+	      
+               //platform_dequeue(dpy, surface->win);
+	       //_awin->dequeueBuffer(_awin, &surf,-1);
                CLIENT_LOCK();
 	       surface->win = _awin ; 
 #else

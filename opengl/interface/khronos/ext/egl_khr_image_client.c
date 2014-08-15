@@ -61,10 +61,96 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <system/graphics.h>
 #include <gralloc_priv.h>
 #include <utils/Log.h>
+#include "host_applications/linux/libs/bcm_host/include/bcm_host.h"
 
 #endif
 static VCOS_LOG_CAT_T egl_khr_image_client_log = VCOS_LOG_INIT("egl_khr_image_client", VCOS_LOG_TRACE);
+const int GRALLOC_PRIV_TYPE_MM_RESOURCE = 0;
+const int GRALLOC_PRIV_TYPE_GL_RESOURCE = 1;
 
+const int GRALLOC_MAGICS_HAL_PIXEL_FORMAT_OPAQUE = 0;
+
+typedef struct gralloc_private_handle_t {
+
+    int res_type;
+    int w;
+    int h;
+    int stride;
+    uint32_t vc_handle;
+    int gl_format;
+    int pixel_format;
+    android_native_buffer_t * buffer;
+
+} gralloc_private_handle_t;
+
+static VC_IMAGE_TYPE_T convert_android_to_vc_img_type(int format) {
+	VC_IMAGE_TYPE_T type = VC_IMAGE_RGB565;
+	switch (format) {
+	case HAL_PIXEL_FORMAT_RGBA_8888:
+		type = VC_IMAGE_RGBA32;
+		break;
+	case HAL_PIXEL_FORMAT_BGRA_8888:
+		type = VC_IMAGE_BGRX8888;
+		break;
+	case HAL_PIXEL_FORMAT_RGBA_5551:
+		type = VC_IMAGE_TF_RGBA5551;
+		break;
+	case HAL_PIXEL_FORMAT_RGBA_4444:
+		type = VC_IMAGE_RGBA16;
+		break;
+	case HAL_PIXEL_FORMAT_RGBX_8888:
+		type = VC_IMAGE_RGBX8888;
+		break;
+	case HAL_PIXEL_FORMAT_RGB_888:
+		type = VC_IMAGE_RGB888;
+		break;
+	case HAL_PIXEL_FORMAT_RGB_565:
+	default:
+		type = VC_IMAGE_RGB565;
+		break;
+	}
+	return type;
+}
+
+uint32_t allocate_and_set_vc_handle(gralloc_private_handle_t *private_handle) {
+    uint32_t vc_handle = 0;
+    DISPMANX_RESOURCE_HANDLE_T resource_handle = vc_dispmanx_resource_create(
+            convert_android_to_vc_img_type(private_handle->pixel_format), private_handle->w, private_handle->h,
+            &vc_handle);
+
+    //vc_dispmanx_resource_create set vc_handle to 0
+    //call to vc_dispmanx_resource_get_image_handle is needed
+    vc_handle = vc_dispmanx_resource_get_image_handle(resource_handle);
+
+    return vc_handle;
+}
+
+private_handle_t* gralloc_private_handle_from_client_buffer(EGLClientBuffer buffer) {
+    bcm_host_init();
+
+    gralloc_private_handle_t* gralloc_handle = (gralloc_private_handle_t*) malloc(sizeof(gralloc_private_handle_t));
+    ANativeBuffer *android_buffer = (android_native_buffer_t *) buffer;
+    gralloc_handle->res_type = GRALLOC_PRIV_TYPE_MM_RESOURCE;
+    gralloc_handle->w = android_buffer->width;
+    gralloc_handle->h = android_buffer->height;
+    gralloc_handle->stride = android_buffer->stride;
+    gralloc_handle->buffer = android_buffer;
+    gralloc_handle->gl_format = GRALLOC_MAGICS_HAL_PIXEL_FORMAT_OPAQUE;
+    gralloc_handle->pixel_format = android_buffer->format;
+
+    gralloc_handle->vc_handle = allocate_and_set_vc_handle(gralloc_handle);
+
+    return gralloc_handle;
+}
+uint32_t gralloc_private_handle_get_res_type(gralloc_private_handle_t* private_handle) {
+    return private_handle->res_type;
+}
+uint32_t gralloc_private_handle_get_egl_image(gralloc_private_handle_t *private_handle) {
+    return (uint32_t)private_handle->buffer;
+}
+uint32_t gralloc_private_handle_get_vc_handle(gralloc_private_handle_t *private_handle) {
+    return private_handle->vc_handle;
+}
 EGLAPI EGLImageKHR EGLAPIENTRY eglCreateImageKHR (EGLDisplay dpy, EGLContext ctx, EGLenum target, EGLClientBuffer buffer, const EGLint *attr_list)
 {
    CLIENT_THREAD_STATE_T *thread = CLIENT_GET_THREAD_STATE();
@@ -188,20 +274,17 @@ EGLAPI EGLImageKHR EGLAPIENTRY eglCreateImageKHR (EGLDisplay dpy, EGLContext ctx
                   buf_error = true;
                }
 #endif
-
-
-            } else if (target == EGL_NATIVE_BUFFER_ANDROID) {
-               //gralloc_private_handle_t *gpriv = gralloc_private_handle_from_client_buffer(buffer);
-               int res_type =  GRALLOC_PRIV_TYPE_GL_RESOURCE ; //gralloc_private_handle_get_res_type(gpriv);
+ } else if (target == EGL_NATIVE_BUFFER_ANDROID) {
+     ALOGD("%s:%d", __FUNCTION__,__LINE__);  
+               gralloc_private_handle_t *gpriv = gralloc_private_handle_from_client_buffer(buffer);
+               int res_type = gralloc_private_handle_get_res_type(gpriv);
 
                if (res_type == GRALLOC_PRIV_TYPE_GL_RESOURCE) {
                   /* just return the a copy of the EGLImageKHR gralloc created earlier
                      see hardware/broadcom/videocore/components/graphics/gralloc/ */
-                  buffer_width = process->gralloc_module->info.width;
-                  buffer_height = process->gralloc_module->info.height;
-		  target = EGL_IMAGE_BRCM_DUPLICATE;
-                  buf[0] = process->gralloc_module->dispman_resource; ; //(uint32_t)private_handle_get_egl_image(gpriv);
-                  vcos_log_trace("%s: converting buffer %p egl_image %d to EGL_IMAGE_BRCM_DUPLICATE",
+                  target = EGL_IMAGE_BRCM_DUPLICATE;
+                  buf[0] = (uint32_t)gralloc_private_handle_get_egl_image(gpriv);
+                  ALOGD("%s: converting buffer %p egl_image %d to EGL_IMAGE_BRCM_DUPLICATE",
                         __FUNCTION__, buffer, buf[0]);
                }
                else if (res_type == GRALLOC_PRIV_TYPE_MM_RESOURCE) {
@@ -210,23 +293,23 @@ EGLAPI EGLImageKHR EGLAPIENTRY eglCreateImageKHR (EGLDisplay dpy, EGLContext ctx
                    * So, we create the image in the normal way.
                    * EGL_NATIVE_BUFFER_ANDROID is passed as the target.
                    */
-                  //if (gpriv->gl_format == GRALLOC_MAGICS_HAL_PIXEL_FORMAT_OPAQUE)
+                  if (gpriv->gl_format == GRALLOC_MAGICS_HAL_PIXEL_FORMAT_OPAQUE)
                      target = EGL_IMAGE_BRCM_MULTIMEDIA;
-                  //else
-		//target = EGL_IMAGE_BRCM_RAW_PIXELS;
-                  buffer_width = process->gralloc_module->info.width;
-                  buffer_height = process->gralloc_module->info.height;
-                  buffer_stride =process->gralloc_module->stride;
+                  else
+                     target = EGL_IMAGE_BRCM_RAW_PIXELS;
+                  buffer_width = gpriv->w;
+                  buffer_height = gpriv->h;
+                  buffer_stride = gpriv->stride;
 
-                  buf[0] = process->gralloc_module->dispman_resource; //gralloc_private_handle_get_vc_handle(gpriv);
-                  vcos_log_trace("%s: converting buffer %p handle %u to EGL_IMAGE_BRCM_MULTIMEDIA",
+                  buf[0] = gralloc_private_handle_get_vc_handle(gpriv);
+                  ALOGD("%s: converting buffer %p handle %u to EGL_IMAGE_BRCM_MULTIMEDIA",
                         __FUNCTION__, buffer, buf[0]);
                }
                else {
-                  vcos_log_error("%s: unknown gralloc resource type %x", __FUNCTION__, res_type);
+                  ALOGD("%s: unknown gralloc resource type %x", __FUNCTION__, res_type);
                }
             } else {
-               vcos_log_trace("%s:target type %x buffer %p handled on server", __FUNCTION__, target, buffer);
+               ALOGD("%s:target type %x buffer %p handled on server", __FUNCTION__, target, buffer);
                buf[0] = (uint32_t)buffer;
             }
 	    buf_error =false;
@@ -282,7 +365,7 @@ EGLAPI EGLImageKHR EGLAPIENTRY eglCreateImageKHR (EGLDisplay dpy, EGLContext ctx
                   {
                      EGLint results[2];
 
-                     vcos_log_info("%s: width %d height %d target %x buffer %p", __FUNCTION__, buffer_width, buffer_height, target, buffer);
+                     ALOGD("%s: width %d height %d target %x buffer %p", __FUNCTION__, buffer_width, buffer_height, target, buffer);
                      RPC_CALL10_OUT_CTRL(eglCreateImageKHR_impl,
                         thread,
                         EGLCREATEIMAGEKHR_ID,
