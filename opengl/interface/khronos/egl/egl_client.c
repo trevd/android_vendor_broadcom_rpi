@@ -591,7 +591,7 @@ EGLAPI EGLSurface EGLAPIENTRY eglCreateWindowSurface(EGLDisplay dpy, EGLConfig c
    CLIENT_PROCESS_STATE_T *process;
    EGLSurface result;
 
-   vcos_log_trace("eglCreateWindowSurface for window %p config=%d", win,config);
+   ALOGD("eglCreateWindowSurface for display=%p window %p config=%d attrib_list=%p", dpy, win,config,attrib_list);
 
    if (CLIENT_LOCK_AND_GET_STATES(dpy, &thread, &process))
    {
@@ -622,7 +622,7 @@ EGLAPI EGLSurface EGLAPIENTRY eglCreateWindowSurface(EGLDisplay dpy, EGLConfig c
 
             uint32_t width = 0;
 	    uint32_t height= 0;
-            uint32_t num_buffers = 3;
+            uint32_t num_buffers = 2;
             uint32_t swapchain_count = 0 ;
 	    platform_get_dimensions(dpy,win,&width,&height,&swapchain_count);
             
@@ -634,7 +634,7 @@ EGLAPI EGLSurface EGLAPIENTRY eglCreateWindowSurface(EGLDisplay dpy, EGLConfig c
                   num_buffers = 2;
             }
 
-            if (width <= 0 || width > EGL_CONFIG_MAX_WIDTH || height <= 0 || height > EGL_CONFIG_MAX_HEIGHT) {
+            if (width < 0 || width > EGL_CONFIG_MAX_WIDTH || height < 0 || height > EGL_CONFIG_MAX_HEIGHT) {
                /* TODO: Maybe EGL_BAD_ALLOC might be more appropriate? */
 	       vcos_log_error("eglCreateWindowSurface %d width=%d height=%d EGL_CONFIG_MAX_WIDTH=%d EGL_CONFIG_MAX_HEIGHT=%d", __LINE__,width,height,EGL_CONFIG_MAX_WIDTH,EGL_CONFIG_MAX_HEIGHT);
                thread->error = EGL_BAD_NATIVE_WINDOW;

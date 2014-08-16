@@ -727,7 +727,7 @@ void khrn_platform_unbind_pixmap_from_egl_image(EGLImageKHR egl_image)
 
 
 #ifdef EGL_SERVER_DISPMANX
-EGL_DISPMANX_WINDOW_T* check_default(){
+EGL_DISPMANX_WINDOW_T* check_default(EGLDisplay dpy, EGLNativeWindowType win){
        DISPMANX_UPDATE_HANDLE_T dispman_update;
        DISPMANX_DISPLAY_HANDLE_T dispman_display;
        
@@ -737,8 +737,11 @@ EGL_DISPMANX_WINDOW_T* check_default(){
     //glGenTextures(1, &tex);
 	
 	static EGL_DISPMANX_WINDOW_T nativewindow ;
+	static count = 0 ; 
 	if(nativewindow.element != NULL ) {
-	    ALOGD("%s nativewindow.elemen=%p",__FUNCTION__,nativewindow.element);
+	    if(count==0)
+		ALOGD("%s nativewindow.elemen=%p dpy=%p win=%p",__FUNCTION__,nativewindow.element,dpy,win);
+	    count++;
 	    return &nativewindow ; 
 	}
 	bcm_host_init();
@@ -778,7 +781,7 @@ void platform_get_dimensions(EGLDisplay dpy, EGLNativeWindowType win,
     
     //CLIENT_PROCESS_STATE_T *process = CLIENT_GET_PROCESS_STATE();
     //ALOGD("%s:%d height=%d width=%d element=%p win=%p ",__FUNCTION__,__LINE__,process->gralloc_module->dispmanx->window->height,process->gralloc_module->dispmanx->window->width ,process->gralloc_module->dispmanx->window->element,win);
-    EGL_DISPMANX_WINDOW_T*  window = check_default();
+    EGL_DISPMANX_WINDOW_T*  window = check_default(dpy,win);
     (*height) = window->height;
     (*width) =  window->width;
     (*swapchain_count) = 0 ;
@@ -790,8 +793,7 @@ uint32_t platform_get_handle(EGLDisplay dpy, EGLNativeWindowType win)
     
     //ALOGD("%s:%d",__FUNCTION__,__LINE__);
    // CLIENT_PROCESS_STATE_T *process = CLIENT_GET_PROCESS_STATE();
-       EGL_DISPMANX_WINDOW_T*  window = check_default();
-
+       EGL_DISPMANX_WINDOW_T*  window = check_default(dpy,win);
    //ALOGD("%s:%d process->gralloc_module->dispmanx->window->element=%p",__FUNCTION__,__LINE__,process->gralloc_module->dispmanx->window->element);
     return window->element;
     

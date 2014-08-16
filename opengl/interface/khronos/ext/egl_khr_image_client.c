@@ -59,6 +59,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <hardware/fb.h>
 #include <hardware/hardware.h>
 #include <system/graphics.h>
+#include <system/window.h>
 #include <gralloc_priv.h>
 #include <utils/Log.h>
 #include "host_applications/linux/libs/bcm_host/include/bcm_host.h"
@@ -79,7 +80,7 @@ typedef struct gralloc_private_handle_t {
     uint32_t vc_handle;
     int gl_format;
     int pixel_format;
-    android_native_buffer_t * buffer;
+    ANativeWindowBuffer_t * buffer;
 
 } gralloc_private_handle_t;
 
@@ -129,7 +130,7 @@ private_handle_t* gralloc_private_handle_from_client_buffer(EGLClientBuffer buff
     bcm_host_init();
 
     gralloc_private_handle_t* gralloc_handle = (gralloc_private_handle_t*) malloc(sizeof(gralloc_private_handle_t));
-    ANativeBuffer *android_buffer = (android_native_buffer_t *) buffer;
+    ANativeWindowBuffer_t *android_buffer = (android_native_buffer_t *) buffer;
     gralloc_handle->res_type = GRALLOC_PRIV_TYPE_MM_RESOURCE;
     gralloc_handle->w = android_buffer->width;
     gralloc_handle->h = android_buffer->height;

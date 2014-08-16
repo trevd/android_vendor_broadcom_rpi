@@ -145,30 +145,7 @@ void client_try_unload_server(CLIENT_PROCESS_STATE_T *process)
    -
 */
 
-#ifdef ANDROID
-struct private_module_t* client_library_get_gralloc_module(){
-    
-    
-    /*hw_module_t *mod;
-    int fd = -1, err;
-    err = hw_get_module(GRALLOC_HARDWARE_MODULE_ID, &mod);
-    struct private_module_t* pmod =  (struct private_module_t*) mod;
-    /*if(pmod->dispmanx == NULL ){
-	    ALOGD("%s pmod->window == NULL", __FUNCTION__);
-	    alloc_device_t *gr;
-	    int err = gralloc_open(mod, &gr);
-	    gr->perform(
-	    if (err) {
-	//	ALOGE("couldn't open gralloc HAL (%s)", strerror(-err));
-		return -ENODEV;
-	    }
-	    
-    }
-    //ALOGD("%s mod=%p mod->window=%p", __FUNCTION__,pmod, pmod->window);
-    return pmod;*/
-    
-}
-#endif
+
 bool client_process_state_init(CLIENT_PROCESS_STATE_T *process)
 {
    if (!process->inited) {
@@ -234,9 +211,7 @@ bool client_process_state_init(CLIENT_PROCESS_STATE_T *process)
    egl_config_install_configs(0); // RSO configs
 #endif
 #endif
-#ifdef ANDROID
-    process->gralloc_module = client_library_get_gralloc_module();
-#endif
+
    return true;
 }
 
