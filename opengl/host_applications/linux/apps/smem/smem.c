@@ -206,7 +206,7 @@ int main( int argc, char **argv )
    // Initialize VCOS
    vcos_init();
 
-   vcos_log_set_level(&smem_log_category, VCOS_LOG_INFO);
+   vcos_log_set_level(&smem_log_category, VCOS_LOG_TRACE);
    smem_log_category.flags.want_prefix = 0;
    vcos_log_register( "smem", &smem_log_category );
 

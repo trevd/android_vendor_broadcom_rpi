@@ -115,7 +115,7 @@ static VCSM_CACHE_TYPE_T vcsm_cache_table_lookup( VCSM_CACHE_TYPE_T current,
 static void vcsm_init_once(void)
 {
    vcos_mutex_create(&vcsm_mutex, VCOS_FUNCTION);
-   vcos_log_set_level(&usrvcsm_log_category, VCOS_LOG_ERROR);
+   vcos_log_set_level(&usrvcsm_log_category, VCOS_LOG_TRACE);
    usrvcsm_log_category.flags.want_prefix = 0;
    vcos_log_register( "usrvcsm", &usrvcsm_log_category );
 }
