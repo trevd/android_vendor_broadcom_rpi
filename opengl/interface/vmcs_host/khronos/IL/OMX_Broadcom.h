@@ -607,6 +607,7 @@ typedef struct OMX_PARAM_BRCMPORTEGLTYPE {
 /*
 */
 
+#define OMX_CONFIG_IMAGEFILTERPARAMS_MAXPARAMS 6
 /* OMX_IndexConfigCommonImageFilterParameters: Parameterized Image Filter */
 typedef struct OMX_CONFIG_IMAGEFILTERPARAMSTYPE {
    OMX_U32 nSize;
@@ -614,7 +615,7 @@ typedef struct OMX_CONFIG_IMAGEFILTERPARAMSTYPE {
    OMX_U32 nPortIndex;
    OMX_IMAGEFILTERTYPE eImageFilter;
    OMX_U32 nNumParams;
-   OMX_U32 nParams[6];
+   OMX_U32 nParams[OMX_CONFIG_IMAGEFILTERPARAMS_MAXPARAMS];
 } OMX_CONFIG_IMAGEFILTERPARAMSTYPE;
 /*
 This structure contains optional parameters for some image
@@ -2358,17 +2359,19 @@ typedef struct OMX_CONFIG_BRCMRENDERSTATSTYPE {
    OMX_U32 dummy0[2];
 } OMX_CONFIG_BRCMRENDERSTATSTYPE;
 
-#define OMX_BRCM_MAXANNOTATETEXTLEN 32
+#define OMX_BRCM_MAXANNOTATETEXTLEN 256
 typedef struct OMX_CONFIG_BRCMANNOTATETYPE {
    OMX_U32 nSize;
    OMX_VERSIONTYPE nVersion;
    OMX_BOOL bEnable;
-   OMX_U8 sText[OMX_BRCM_MAXANNOTATETEXTLEN];
    OMX_BOOL bShowShutter;
    OMX_BOOL bShowAnalogGain;
    OMX_BOOL bShowLens;
    OMX_BOOL bShowCaf;
    OMX_BOOL bShowMotion;
+   OMX_BOOL bShowFrameNum;
+   OMX_BOOL bBlackBackground;
+   OMX_U8 sText[OMX_BRCM_MAXANNOTATETEXTLEN];
 } OMX_CONFIG_BRCMANNOTATETYPE;
 
 typedef enum OMX_BRCMSTEREOSCOPICMODETYPE {
