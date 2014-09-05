@@ -277,38 +277,40 @@ EGLAPI EGLImageKHR EGLAPIENTRY eglCreateImageKHR (EGLDisplay dpy, EGLContext ctx
 #endif
  } else if (target == EGL_NATIVE_BUFFER_ANDROID) {
      ALOGD("%s:%d", __FUNCTION__,__LINE__);  
-               gralloc_private_handle_t *gpriv = gralloc_private_handle_from_client_buffer(buffer);
-               int res_type = gralloc_private_handle_get_res_type(gpriv);
+               // gralloc_private_handle_t *gpriv = gralloc_private_handle_from_client_buffer(buffer);
+	       ANativeWindowBuffer_t* anwb = (ANativeWindowBuffer_t*)buffer;
+	        ALOGD("%s: ANativeWindowBuffer_t Usage=%d", __FUNCTION__, anwb->usage,anwb->handle);
+               //int res_type = gralloc_private_handle_get_res_type(gpriv);
 
-               if (res_type == GRALLOC_PRIV_TYPE_GL_RESOURCE) {
+               //if (res_type == GRALLOC_PRIV_TYPE_GL_RESOURCE) {
                   /* just return the a copy of the EGLImageKHR gralloc created earlier
                      see hardware/broadcom/videocore/components/graphics/gralloc/ */
-                  target = EGL_IMAGE_BRCM_DUPLICATE;
-                  buf[0] = (uint32_t)gralloc_private_handle_get_egl_image(gpriv);
-                  ALOGD("%s: converting buffer %p egl_image %d to EGL_IMAGE_BRCM_DUPLICATE",
-                        __FUNCTION__, buffer, buf[0]);
-               }
-               else if (res_type == GRALLOC_PRIV_TYPE_MM_RESOURCE) {
+               //   target = EGL_IMAGE_BRCM_DUPLICATE;
+               //   buf[0] = (uint32_t)gralloc_private_handle_get_egl_image(gpriv);
+               //   ALOGD("%s: converting buffer %p egl_image %d to EGL_IMAGE_BRCM_DUPLICATE",
+               //         __FUNCTION__, buffer, buf[0]);
+               //}
+               //else if (res_type == GRALLOC_PRIV_TYPE_MM_RESOURCE) {
                   /* MM image is potentially going to be used as a texture so
                    * VC EGL needs to acquire a reference to the underlying vc_image.
                    * So, we create the image in the normal way.
                    * EGL_NATIVE_BUFFER_ANDROID is passed as the target.
                    */
-                  if (gpriv->gl_format == GRALLOC_MAGICS_HAL_PIXEL_FORMAT_OPAQUE)
+                //  if (gpriv->gl_format == GRALLOC_MAGICS_HAL_PIXEL_FORMAT_OPAQUE)
                      target = EGL_IMAGE_BRCM_MULTIMEDIA;
-                  else
-                     target = EGL_IMAGE_BRCM_RAW_PIXELS;
-                  buffer_width = gpriv->w;
-                  buffer_height = gpriv->h;
-                  buffer_stride = gpriv->stride;
+                //  else
+                //     target = EGL_IMAGE_BRCM_RAW_PIXELS;
+                  buffer_width = anwb->width; //gpriv->w;
+                  buffer_height = anwb->height ; // gpriv->h;
+                  buffer_stride = anwb->stride;
 
-                  buf[0] = gralloc_private_handle_get_vc_handle(gpriv);
+                  buf[0] = anwb->handle ; //gralloc_private_handle_get_vc_handle(gpriv);
                   ALOGD("%s: converting buffer %p handle %u to EGL_IMAGE_BRCM_MULTIMEDIA",
                         __FUNCTION__, buffer, buf[0]);
-               }
-               else {
-                  ALOGD("%s: unknown gralloc resource type %x", __FUNCTION__, res_type);
-               }
+               //}
+               //else {
+               //   ALOGD("%s: unknown gralloc resource type %x", __FUNCTION__, res_type);
+              // }
             } else {
                ALOGD("%s:target type %x buffer %p handled on server", __FUNCTION__, target, buffer);
                buf[0] = (uint32_t)buffer;

@@ -2344,6 +2344,9 @@ EGLAPI EGLBoolean EGLAPIENTRY eglSwapBuffers(EGLDisplay dpy, EGLSurface surf)
                CLIENT_UNLOCK();
 	      
                //platform_dequeue(dpy, surface->win);
+	       // ALOGD("eglSwapBuffers _awin=%p surf=%p surface->win=%p surface->internal_handle=%p width=%d base_width=%d, height=%d base_height=%d ",
+               //         _awin,surf,surface->win,surface->internal_handle,surface->width, surface->base_width, surface->height,
+               //         surface->base_height);
 	       //_awin->dequeueBuffer(_awin, &surf,-1);
                CLIENT_LOCK();
 	       surface->win = _awin ; 
