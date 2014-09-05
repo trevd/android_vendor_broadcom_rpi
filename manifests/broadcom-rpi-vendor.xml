@@ -13,7 +13,7 @@
 	<project path="kernel/broadcom/rpi" name="trevd/android_kernel_broadcom_rpi" groups="pdk,rpi" />
 	<!-- raspberry pi specific modules. This contains the hwcomposer , gralloc and the libEGL.
 		 LibEGL implements the EGL, GLES and GLESv2  in a single module -->
-	<project path="hardware/broadcom/bcm2708" name="trevd/android_hardware_broadcom_bcm2708" revision="development" groups="pdk,rpi" />
+	<project path="hardware/broadcom/bcm2708" name="trevd/android_hardware_broadcom_bcm2708" revision="exp_1" groups="pdk,rpi" />
 	
 
 </manifest>
