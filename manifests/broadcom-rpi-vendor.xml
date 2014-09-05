@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <manifest>
 
+	<!-- ThemeChooser is not have a good time and needs to have a word with itself. Compile or GTFO-->
+	<remove-project name="CyanogenMod/android_packages_apps_ThemeChooser" />
+	
 	<!-- Replace Busybox with a version which add virtual terminal applets 	-->
 	<remove-project name="CyanogenMod/android_external_busybox" />
 	<project path="external/busybox" name="trevd/android_external_busybox" groups="pdk,rpi" revision="cm-11.0-rpi" />
