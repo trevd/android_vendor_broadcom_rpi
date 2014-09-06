@@ -1,0 +1,119 @@
+
+
+CURRENT-OUTLOOK : OPTIMISITC
+
+
+Kernel Missing?
+---------------
+GLES - Some recommended Android Extensions. 
+Kernel - Netfilter
+Kernel - Whatever is outstanding on Linaro's upstreaming list https://wiki.linaro.org/WorkingGroups/Kernel/AndroidUpstreaming
+Kernel - Probably Some very useful and possible required videocore services
+HWComposer - Raspberry Specific implementation that supports the Android Atomic Sync Framework ( VSync Fences    )
+Gralloc -  A Videocore based Gralloc.
+The Unknown Unknowns - https://www.youtube.com/watch?v=GiPe1OiKQuk
+
+Graphics Resources Overview
+---------------------------
+
+The Android graphics path, in depth - Chris Simmons
+Slides : http://events.linuxfoundation.org/sites/events/files/slides/android-graphics-abs-2014_0.pdf
+Audio : http://events.linuxfoundation.org/sites/events/files/The%20Android%20Graphics%20Path%20In%20Depth%20-%20Chris%20Simmonds%20-%202Net_0.mp3
+
+charleszblog.wordpress.com - Excellent Blog on the large majority of Android Graphics Internals
+include explanation of surfaceflinger, hwcomposer and gralloc
+
+Linaro.org - LCE13 - Android Hwcomposer on KMS
+Presentation on Linaro's work to build a KMS back hwcomposer. With good explanation on
+how syncing and fence works as well as the hwcomposer interaction with surfaceflinger
+https://www.youtube.com/watch?v=AuoFABKS_Dk
+
+Android's Official Graphics Porting Documentation
+This can be confusing as the references to GLES rendering seems to imply this
+is implementated in software even though most SOCs have GPU backed GLES implementations
+
+http://source.android.com/devices/graphics.html
+
+Graphics Allocation on the PI
+-----------------------------
+Dispmanx,VideoCore Shared Memory or the VideoCore IO Mailbox interface. Pick your poison ultimately
+we are trying to work with a pointer to a valid GPU buffer however that is gained or passed between
+applicatons seems irrelevant as long as it's consistant then rainbows, unicorns and electric sheep await.
+
+Obviously there's a metric shit ton more to it than this an that's where the fun begins. 
+
+
+
+Memory Tuning - For when the Graphics are working
+--------------------------------------------------
+
+Android's Official LowRam Guidance
+The Raspberry Kernel may be still missing some interfaces. 
+http://source.android.com/devices/low-ram.html
+
+Tuning Android For Low RAM - Chris Simmonds, 2net 
+Slides : http://events.linuxfoundation.org/sites/events/files/slides/android-lowmemory-abs-2014.pdf
+Audio : http://events.linuxfoundation.org/sites/events/files/Tuning%20Android%20For%20Low%20RAM%20-%20Chris%20Simmonds-%202net.mp3
+
+Broadcom also have a kernel based Videocore service named Broadcom Low Memory Killer which I assume works in 
+collaboration with the standard Android Low Memory Killer. This would need to be Ported from the Samsung I9105P Kernel
+which shares the same GPU as the RaspberryPi. 
+
+
+Generally Good Resources
+------------------------
+
+Android Builders Summit 2014: 
+All Slides : http://events.linuxfoundation.org/events/android-builders-summit/program/slides
+All Audio : http://events.linuxfoundation.org/events/android-builders-summit/program/audio-recordings
+
+
+androidxrefccom - Developer crack for the aosp searching the aosp codebase.
+
+
+A Suggested SDCard Layout
+--------------------------
+
+Model: Mass Storage Device (scsi)
+Disk /dev/sdd: 8021MB
+Sector size (logical/physical): 512B/512B
+Partition Table: msdos
+
+Number  Name	Start   End     Size    Type     File system  Flags
+ 1      boot	512B    80.0MB  80.0MB  primary  fat16        lba
+ 2      system	80.7MB  1000MB  920MB   primary  ext4
+ 3      data	1000MB  7000MB  6000MB  primary  ext4
+ 4      cache	7000MB  8000MB  999MB   primary  ext4
+
+
+Partition Number 1 information :
+Creating this partition is currently a manual process
+
+-rw-r--r-- 1 android  18K Sep  4 16:54 bootcode.bin
+-rw-r--r-- 1 android  925 Sep  4 18:18 config.txt
+-rw-r--r-- 1 android 6.0K Sep  4 16:55 fixup.dat
+-rw-r--r-- 1 android 5.4M Sep  4 17:18 kernel
+-rw-r--r-- 1 android 438K Aug 30 10:26 ramdisk.img
+-rw-r--r-- 1 android 2.5M Sep  4 16:55 start.elf
+
+File Out Location
+$ANDROID_PRODUCT_OUT/bootloader/bootcode.bin
+$ANDROID_PRODUCT_OUT/bootloader/config.txt
+$ANDROID_PRODUCT_OUT/bootloader/fixup.dat
+$ANDROID_PRODUCT_OUT/kernel
+$ANDROID_PRODUCT_OUT/ramdisk.img
+$ANDROID_PRODUCT_OUT/bootloader/start.elf
+
+Partition 2 :
+use dd or cat to write a system image the the block device i.e
+cat $ANDROID_PRODUCT_OUT/system.img > /dev/sdk2
+
+Partition 3:
+use make_ext4fs for format the partition i.e
+make_ext4fs /dev/sdk3
+
+Partition 4:
+use make_ext4fs for format the partition i.e
+make_ext4fs /dev/sdk3
+
+
