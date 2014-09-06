@@ -12,7 +12,7 @@ familiar with [Git and Repo](http://source.android.com/source/developing.html).
 To initialize your local repository for creating Cyanogenmod 11.0 for the RaspberryPi
 You need to download and run the vendor initialize script.
 
-    curl -L http://goo.gl/WQPdtQ > vendorinit.sh > vendorinit.sh
+    curl -L http://goo.gl/WQPdtQ > vendorinit.sh
     sudo chmod 755 vendorinit.sh
     source vendorinit.sh
     [See Notes for more info]
@@ -36,6 +36,7 @@ Notes
 -----
 The vendorinit.sh Script carries out 2 tasks
 1. runs the standard repo init to get the cm-11.0 androidarmv6 manifest 
+2. Downloads manifests/broadcom-rpi-vendor.xml to .repo/local_manifests
 
 repo init -u git://github.com/androidarmv6/android.git -b cm-11.0
 
