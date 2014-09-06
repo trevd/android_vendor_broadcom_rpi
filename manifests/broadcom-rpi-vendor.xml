@@ -1,4 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Copyright (C) 2014 Trevor Drake [trevd1234@gmail.com]
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License v2.0 Only as 
+    published by the Free Software Foundation
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see [http://www.gnu.org/licenses].
+-->
 <manifest>
 
 	<!-- CMAccount & ThemeChooser is not have a good time and needs 
@@ -15,14 +30,13 @@
 	<remove-project name="CyanogenMod/android_external_busybox" />
 	<project path="external/busybox" name="trevd/android_external_busybox" groups="pdk,rpi" revision="cm-11.0-rpi" />
 	
-	<!-- Vendor Repository mainly used for initialization  -->
+	<!-- Vendor Repository used for initialization and holds a modified version of the raspberryPi Userland Repository -->
 	<project path="vendor/broadcom/rpi" name="trevd/android_vendor_broadcom_rpi" revision="development" groups="pdk,rpi" />
 	<!-- Kitkat friendly Device Configuration -->
 	<project path="device/broadcom/rpi" name="trevd/android_device_broadcom_rpi" groups="pdk,rpi" />
 	<!-- Raspberry Kernel - Forked from from github.com/raspberrypi/linux -->
 	<project path="kernel/broadcom/rpi" name="trevd/android_kernel_broadcom_rpi" groups="pdk,rpi" />
-	<!-- raspberry pi specific modules. This contains the hwcomposer , gralloc and the libEGL.
-		 LibEGL implements the EGL, GLES and GLESv2  in a single module -->
+	<!-- raspberry pi specific modules. This contains the hwcomposer , gralloc -->
 	<project path="hardware/broadcom/bcm2708" name="trevd/android_hardware_broadcom_bcm2708" revision="exp_1" groups="pdk,rpi" />
 	
 

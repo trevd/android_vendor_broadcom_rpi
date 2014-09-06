@@ -1,3 +1,19 @@
+#
+# Copyright (C) 2014 Trevor Drake <trevd1234@gmail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License v2.0 Only as 
+# published by the Free Software Foundation
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
 LOCAL_PATH := $(call my-dir)
 
 opengl_cflags := \
@@ -138,12 +154,3 @@ LOCAL_C_INCLUDES := $(opengl_c_includes) \
 					$(LOCAL_PATH)/host_applications/linux/kernel_headers/
 LOCAL_SHARED_LIBRARIES := liblog libdl libvc4
 include $(BUILD_SHARED_LIBRARY)
-
-#include $(CLEAR_VARS)
-#LOCAL_LDFLAGS := -Wl,--no-warn-shared-textrel
-#LOCAL_MODULE := libGLES_bcm2708
-#LOCAL_SHARED_LIBRARIES := liblog libdl 
-#LOCAL_WHOLE_STATIC_LIBRARIES := libkhrn_static
-#LOCAL_MODULE_TAGS:= optional
-#LOCAL_MODULE_PATH:= $(TARGET_OUT_VENDOR_SHARED_LIBRARIES)/egl
-#include $(BUILD_SHARED_LIBRARY)
