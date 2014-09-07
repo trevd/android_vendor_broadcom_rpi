@@ -13,8 +13,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-echo "Patching Build System - Making PI Friendly"
-patch  --silent --forward --reject-file=- --strip=0 < vendor/broadcom/rpi/patches/android_build.patch
+#echo "Patching Build System - Making PI Friendly"
+#patch  --silent --forward --reject-file=- --strip=0 < vendor/broadcom/rpi/patches/android_build.patch
 if [ ! -f vendor/cm/proprietary/Term.apk ] ; then
     ./vendor/cm/get-prebuilts
 fi
