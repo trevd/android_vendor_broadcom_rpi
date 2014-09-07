@@ -35,7 +35,7 @@
 	<!-- Kitkat friendly Device Configuration -->
 	<project path="device/broadcom/rpi" name="trevd/android_device_broadcom_rpi" groups="pdk,rpi" />
 	<!-- Raspberry Kernel - Forked from from github.com/raspberrypi/linux -->
-	<project path="kernel/broadcom/rpi" name="trevd/android_kernel_broadcom_rpi" groups="pdk,rpi" />
+	<project path="kernel/broadcom/rpi" name="trevd/android_kernel_broadcom_rpi" groups="pdk,rpi" clone-depth="1" />
 	<!-- raspberry pi specific modules. This contains the hwcomposer , gralloc -->
 	<project path="hardware/broadcom/bcm2708" name="trevd/android_hardware_broadcom_bcm2708" revision="exp_1" groups="pdk,rpi" />
 	
