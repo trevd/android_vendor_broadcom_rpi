@@ -16,28 +16,75 @@
 
 LOCAL_PATH := $(call my-dir)
 
-opengl_cflags := \
-		-DANDROID -DEGL_EGLEXT_ANDROID_STRUCT_HEADER \
-		-DEGL_SERVER_DISPMANX \
-		-DHAVE_VMCS_CONFIG -DOMX_SKIP64BIT -DOpenVG_EXPORTS \
-		-DTV_SUPPORTED_MODE_NO_DEPRECATED -DUSE_VCHIQ_ARM \
-		-DVCHI_BULK_ALIGN=1 -DVCHI_BULK_GRANULARITY=1 \
-		-D_FILE_OFFSET_BITS=64 -D_HAVE_SBRK -D_LARGEFILE64_SOURCE \
-		-D_LARGEFILE_SOURCE -D_REENTRANT -D__VIDEOCORE4__
 
-opengl_c_includes := \
-		$(LOCAL_PATH)/host_applications/framework \
-		$(LOCAL_PATH)/host_applications/linux/libs/bcm_host/include \
-		$(LOCAL_PATH)/interface/vcos \
-		$(LOCAL_PATH)/interface/vcos/pthreads \
-		$(LOCAL_PATH)/interface/vmcs_host/linux \
-		$(LOCAL_PATH)/interface/vmcs_host \
-		$(LOCAL_PATH)/interface/vmcs_host/khronos \
-		$(LOCAL_PATH)/interface/khronos/include \
-		$(LOCAL_PATH)/interface/vchiq_arm \
-		$(LOCAL_PATH)/host_support/include \
-		hardware/broadcom/bcm2708/gralloc \
-		system/core/include \
+ifeq ($(strip $(TARGET_BOARD_OPENGL_CFLAGS)),)
+	$(error TARGET_BOARD_OPENGL_CFLAGS no set)
+endif
+
+ifeq ($(strip $(TARGET_BOARD_OPENGL_C_INCLUDES)),)
+	$(error TARGET_BOARD_OPENGL_C_INCLUDES no set)
+endif
+
+					
+		
+####################   libvc4    ######################################
+
+
+
+vchostif_src_files := \
+		interface/vmcs_host/linux/vcfilesys.c \
+		interface/vmcs_host/linux/vcmisc.c \
+		interface/vmcs_host/vc_vchi_gencmd.c \
+		interface/vmcs_host/vc_vchi_filesys.c \
+		interface/vmcs_host/vc_vchi_tvservice.c \
+		interface/vmcs_host/vc_vchi_cecservice.c \
+		interface/vmcs_host/vc_vchi_dispmanx.c \
+		interface/vmcs_host/vc_service_common.c
+
+bcm_host_src_files := host_applications/linux/libs/bcm_host/bcm_host.c
+
+vcsm_src_files := host_applications/linux/libs/sm/user-vcsm.c
+
+vchiq_arm_src_files := \
+		interface/vchiq_arm/vchiq_lib.c \
+		interface/vchiq_arm/vchiq_util.c
+
+vcos_src_files := \
+		interface/vcos/pthreads/vcos_pthreads.c \
+		interface/vcos/pthreads/vcos_dlfcn.c \
+		interface/vcos/generic/vcos_generic_event_flags.c \
+		interface/vcos/generic/vcos_mem_from_malloc.c \
+		interface/vcos/generic/vcos_generic_named_sem.c \
+		interface/vcos/generic/vcos_generic_safe_string.c \
+		interface/vcos/generic/vcos_generic_reentrant_mtx.c \
+		interface/vcos/generic/vcos_abort.c \
+		interface/vcos/generic/vcos_cmd.c \
+		interface/vcos/generic/vcos_init.c \
+		interface/vcos/generic/vcos_msgqueue.c \
+		interface/vcos/generic/vcos_logcat.c \
+		interface/vcos/generic/vcos_generic_blockpool.c
+
+
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := libvc4
+LOCAL_MODULE_TAGS:= optional
+LOCAL_MODULE_PATH:= $(TARGET_OUT_VENDOR_SHARED_LIBRARIES)
+LOCAL_CFLAGS := $(TARGET_BOARD_OPENGL_CFLAGS)
+LOCAL_C_INCLUDES := $(TARGET_BOARD_OPENGL_C_INCLUDES)
+LOCAL_SRC_FILES := \
+			$(vchostif_src_files) \
+			$(bcm_host_src_files) \
+			$(vcsm_src_files) \
+			$(vchiq_arm_src_files) \
+			$(vcos_src_files)
+LOCAL_SHARED_LIBRARIES := liblog libdl
+include $(BUILD_SHARED_LIBRARY)
+
+########################################################################
+
+
+##################  libGLES_2708 #######################################
 
 egl_src_files := \
 		interface/khronos/egl/egl_client_config.c \
@@ -81,76 +128,19 @@ client_src_files := \
 		interface/khronos/common/khrn_int_hash_asm.s \
 		interface/khronos/common/khrn_client_cache.c
 
-vchostif_src_files := \
-		interface/vmcs_host/linux/vcfilesys.c \
-		interface/vmcs_host/linux/vcmisc.c \
-		interface/vmcs_host/vc_vchi_gencmd.c \
-		interface/vmcs_host/vc_vchi_filesys.c \
-		interface/vmcs_host/vc_vchi_tvservice.c \
-		interface/vmcs_host/vc_vchi_cecservice.c \
-		interface/vmcs_host/vc_vchi_dispmanx.c \
-		interface/vmcs_host/vc_service_common.c
-
-bcm_host_src_files := host_applications/linux/libs/bcm_host/bcm_host.c
-
-vchiq_arm_src_files := \
-		interface/vchiq_arm/vchiq_lib.c \
-		interface/vchiq_arm/vchiq_util.c
-
-vcos_src_files := \
-		interface/vcos/pthreads/vcos_pthreads.c \
-		interface/vcos/pthreads/vcos_dlfcn.c \
-		interface/vcos/generic/vcos_generic_event_flags.c \
-		interface/vcos/generic/vcos_mem_from_malloc.c \
-		interface/vcos/generic/vcos_generic_named_sem.c \
-		interface/vcos/generic/vcos_generic_safe_string.c \
-		interface/vcos/generic/vcos_generic_reentrant_mtx.c \
-		interface/vcos/generic/vcos_abort.c \
-		interface/vcos/generic/vcos_cmd.c \
-		interface/vcos/generic/vcos_init.c \
-		interface/vcos/generic/vcos_msgqueue.c \
-		interface/vcos/generic/vcos_logcat.c \
-		interface/vcos/generic/vcos_generic_blockpool.c
-
-include $(CLEAR_VARS)
-LOCAL_MODULE := libvc4
-LOCAL_CFLAGS := $(opengl_cflags)
-LOCAL_MODULE_TAGS:= optional
-LOCAL_MODULE_PATH:= $(TARGET_OUT_VENDOR_SHARED_LIBRARIES)
-LOCAL_SRC_FILES := \
-			$(vchostif_src_files) \
-			$(bcm_host_src_files) \
-			$(vchiq_arm_src_files) \
-			$(vcos_src_files)
-LOCAL_C_INCLUDES := $(opengl_c_includes)
-LOCAL_SHARED_LIBRARIES := liblog libdl
-include $(BUILD_SHARED_LIBRARY)
-
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := libGLES_bcm2708
-LOCAL_CFLAGS := $(opengl_cflags)
 LOCAL_MODULE_TAGS:= optional
 LOCAL_MODULE_PATH:= $(TARGET_OUT_VENDOR_SHARED_LIBRARIES)/egl
+LOCAL_CFLAGS := $(TARGET_BOARD_OPENGL_CFLAGS)
+LOCAL_C_INCLUDES := $(TARGET_BOARD_OPENGL_C_INCLUDES)
 LOCAL_SRC_FILES := \
 			$(client_src_files) \
 			$(vg_src_files) \
 			$(gles_src_files) \
 			$(egl_src_files)
-LOCAL_C_INCLUDES := $(opengl_c_includes)
-LOCAL_SHARED_LIBRARIES := liblog libdl libvc4 libhardware
+LOCAL_SHARED_LIBRARIES := liblog libvc4 libhardware
 include $(BUILD_SHARED_LIBRARY)
 
-
-include $(CLEAR_VARS)
-LOCAL_MODULE := libvcsm
-LOCAL_CFLAGS := $(opengl_cflags)
-LOCAL_MODULE_TAGS:= optional
-LOCAL_MODULE_PATH:= $(TARGET_OUT_VENDOR_SHARED_LIBRARIES)
-LOCAL_SRC_FILES := \
-			host_applications/linux/libs/sm/user-vcsm.c
-LOCAL_C_INCLUDES := $(opengl_c_includes) \
-					$(LOCAL_PATH)/host_applications/linux/libs/sm \
-					$(LOCAL_PATH)/host_applications/linux/kernel_headers/
-LOCAL_SHARED_LIBRARIES := liblog libdl libvc4
-include $(BUILD_SHARED_LIBRARY)
+########################################################################
