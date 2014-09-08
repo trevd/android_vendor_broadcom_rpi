@@ -47,4 +47,5 @@ TARGET_BOARD_OPENGL_C_INCLUDES := \
 		vendor/broadcom/rpi/opengl/interface/vchiq_arm \
 		vendor/broadcom/rpi/opengl/host_support/include \
 		hardware/broadcom/bcm2708/gralloc \
+		hardware/broadcom/bcm2708/libdispmax \
 		system/core/include \
